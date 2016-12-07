@@ -8,6 +8,7 @@ package scheduler
 import (
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"github.com/mesos/mesos-go"
 	fflib "github.com/pquerna/ffjson/fflib/v1"
@@ -1724,11 +1725,11 @@ func (mj *Call_Acknowledge) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	var obj []byte
 	_ = obj
 	_ = err
-	buf.WriteString(`{ "agent_id":`)
+	buf.WriteString(`{ "slave_id":`)
 
 	{
 
-		err = mj.AgentID.MarshalJSONBuf(buf)
+		err = mj.SlaveID.MarshalJSONBuf(buf)
 		if err != nil {
 			return err
 		}
@@ -1769,14 +1770,14 @@ const (
 	ffj_t_Call_Acknowledgebase = iota
 	ffj_t_Call_Acknowledgeno_such_key
 
-	ffj_t_Call_Acknowledge_AgentID
+	ffj_t_Call_Acknowledge_SlaveID
 
 	ffj_t_Call_Acknowledge_TaskID
 
 	ffj_t_Call_Acknowledge_UUID
 )
 
-var ffj_key_Call_Acknowledge_AgentID = []byte("agent_id")
+var ffj_key_Call_Acknowledge_SlaveID = []byte("slave_id")
 
 var ffj_key_Call_Acknowledge_TaskID = []byte("task_id")
 
@@ -1841,10 +1842,10 @@ mainparse:
 			} else {
 				switch kn[0] {
 
-				case 'a':
+				case 's':
 
-					if bytes.Equal(ffj_key_Call_Acknowledge_AgentID, kn) {
-						currentKey = ffj_t_Call_Acknowledge_AgentID
+					if bytes.Equal(ffj_key_Call_Acknowledge_SlaveID, kn) {
+						currentKey = ffj_t_Call_Acknowledge_SlaveID
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
@@ -1879,8 +1880,8 @@ mainparse:
 					goto mainparse
 				}
 
-				if fflib.AsciiEqualFold(ffj_key_Call_Acknowledge_AgentID, kn) {
-					currentKey = ffj_t_Call_Acknowledge_AgentID
+				if fflib.EqualFoldRight(ffj_key_Call_Acknowledge_SlaveID, kn) {
+					currentKey = ffj_t_Call_Acknowledge_SlaveID
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
@@ -1902,8 +1903,8 @@ mainparse:
 			if tok == fflib.FFTok_left_brace || tok == fflib.FFTok_left_bracket || tok == fflib.FFTok_integer || tok == fflib.FFTok_double || tok == fflib.FFTok_string || tok == fflib.FFTok_bool || tok == fflib.FFTok_null {
 				switch currentKey {
 
-				case ffj_t_Call_Acknowledge_AgentID:
-					goto handle_AgentID
+				case ffj_t_Call_Acknowledge_SlaveID:
+					goto handle_SlaveID
 
 				case ffj_t_Call_Acknowledge_TaskID:
 					goto handle_TaskID
@@ -1925,9 +1926,9 @@ mainparse:
 		}
 	}
 
-handle_AgentID:
+handle_SlaveID:
 
-	/* handler: uj.AgentID type=mesos.AgentID kind=struct quoted=false*/
+	/* handler: uj.SlaveID type=mesos.SlaveID kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -1936,7 +1937,7 @@ handle_AgentID:
 			goto mainparse
 		}
 
-		err = uj.AgentID.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+		err = uj.SlaveID.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
 			return err
 		}
@@ -2676,13 +2677,13 @@ func (mj *Call_Kill) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 
 	}
 	buf.WriteByte(',')
-	if mj.AgentID != nil {
+	if mj.SlaveID != nil {
 		if true {
-			buf.WriteString(`"agent_id":`)
+			buf.WriteString(`"slave_id":`)
 
 			{
 
-				err = mj.AgentID.MarshalJSONBuf(buf)
+				err = mj.SlaveID.MarshalJSONBuf(buf)
 				if err != nil {
 					return err
 				}
@@ -2717,14 +2718,14 @@ const (
 
 	ffj_t_Call_Kill_TaskID
 
-	ffj_t_Call_Kill_AgentID
+	ffj_t_Call_Kill_SlaveID
 
 	ffj_t_Call_Kill_KillPolicy
 )
 
 var ffj_key_Call_Kill_TaskID = []byte("task_id")
 
-var ffj_key_Call_Kill_AgentID = []byte("agent_id")
+var ffj_key_Call_Kill_SlaveID = []byte("slave_id")
 
 var ffj_key_Call_Kill_KillPolicy = []byte("kill_policy")
 
@@ -2787,18 +2788,18 @@ mainparse:
 			} else {
 				switch kn[0] {
 
-				case 'a':
-
-					if bytes.Equal(ffj_key_Call_Kill_AgentID, kn) {
-						currentKey = ffj_t_Call_Kill_AgentID
-						state = fflib.FFParse_want_colon
-						goto mainparse
-					}
-
 				case 'k':
 
 					if bytes.Equal(ffj_key_Call_Kill_KillPolicy, kn) {
 						currentKey = ffj_t_Call_Kill_KillPolicy
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 's':
+
+					if bytes.Equal(ffj_key_Call_Kill_SlaveID, kn) {
+						currentKey = ffj_t_Call_Kill_SlaveID
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
@@ -2819,8 +2820,8 @@ mainparse:
 					goto mainparse
 				}
 
-				if fflib.AsciiEqualFold(ffj_key_Call_Kill_AgentID, kn) {
-					currentKey = ffj_t_Call_Kill_AgentID
+				if fflib.EqualFoldRight(ffj_key_Call_Kill_SlaveID, kn) {
+					currentKey = ffj_t_Call_Kill_SlaveID
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
@@ -2851,8 +2852,8 @@ mainparse:
 				case ffj_t_Call_Kill_TaskID:
 					goto handle_TaskID
 
-				case ffj_t_Call_Kill_AgentID:
-					goto handle_AgentID
+				case ffj_t_Call_Kill_SlaveID:
+					goto handle_SlaveID
 
 				case ffj_t_Call_Kill_KillPolicy:
 					goto handle_KillPolicy
@@ -2892,24 +2893,24 @@ handle_TaskID:
 	state = fflib.FFParse_after_value
 	goto mainparse
 
-handle_AgentID:
+handle_SlaveID:
 
-	/* handler: uj.AgentID type=mesos.AgentID kind=struct quoted=false*/
+	/* handler: uj.SlaveID type=mesos.SlaveID kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
 
-			uj.AgentID = nil
+			uj.SlaveID = nil
 
 			state = fflib.FFParse_after_value
 			goto mainparse
 		}
 
-		if uj.AgentID == nil {
-			uj.AgentID = new(mesos.AgentID)
+		if uj.SlaveID == nil {
+			uj.SlaveID = new(mesos.SlaveID)
 		}
 
-		err = uj.AgentID.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+		err = uj.SlaveID.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
 			return err
 		}
@@ -2984,11 +2985,11 @@ func (mj *Call_Message) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	var obj []byte
 	_ = obj
 	_ = err
-	buf.WriteString(`{ "agent_id":`)
+	buf.WriteString(`{ "slave_id":`)
 
 	{
 
-		err = mj.AgentID.MarshalJSONBuf(buf)
+		err = mj.SlaveID.MarshalJSONBuf(buf)
 		if err != nil {
 			return err
 		}
@@ -3029,14 +3030,14 @@ const (
 	ffj_t_Call_Messagebase = iota
 	ffj_t_Call_Messageno_such_key
 
-	ffj_t_Call_Message_AgentID
+	ffj_t_Call_Message_SlaveID
 
 	ffj_t_Call_Message_ExecutorID
 
 	ffj_t_Call_Message_Data
 )
 
-var ffj_key_Call_Message_AgentID = []byte("agent_id")
+var ffj_key_Call_Message_SlaveID = []byte("slave_id")
 
 var ffj_key_Call_Message_ExecutorID = []byte("executor_id")
 
@@ -3101,14 +3102,6 @@ mainparse:
 			} else {
 				switch kn[0] {
 
-				case 'a':
-
-					if bytes.Equal(ffj_key_Call_Message_AgentID, kn) {
-						currentKey = ffj_t_Call_Message_AgentID
-						state = fflib.FFParse_want_colon
-						goto mainparse
-					}
-
 				case 'd':
 
 					if bytes.Equal(ffj_key_Call_Message_Data, kn) {
@@ -3121,6 +3114,14 @@ mainparse:
 
 					if bytes.Equal(ffj_key_Call_Message_ExecutorID, kn) {
 						currentKey = ffj_t_Call_Message_ExecutorID
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 's':
+
+					if bytes.Equal(ffj_key_Call_Message_SlaveID, kn) {
+						currentKey = ffj_t_Call_Message_SlaveID
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
@@ -3139,8 +3140,8 @@ mainparse:
 					goto mainparse
 				}
 
-				if fflib.AsciiEqualFold(ffj_key_Call_Message_AgentID, kn) {
-					currentKey = ffj_t_Call_Message_AgentID
+				if fflib.EqualFoldRight(ffj_key_Call_Message_SlaveID, kn) {
+					currentKey = ffj_t_Call_Message_SlaveID
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
@@ -3162,8 +3163,8 @@ mainparse:
 			if tok == fflib.FFTok_left_brace || tok == fflib.FFTok_left_bracket || tok == fflib.FFTok_integer || tok == fflib.FFTok_double || tok == fflib.FFTok_string || tok == fflib.FFTok_bool || tok == fflib.FFTok_null {
 				switch currentKey {
 
-				case ffj_t_Call_Message_AgentID:
-					goto handle_AgentID
+				case ffj_t_Call_Message_SlaveID:
+					goto handle_SlaveID
 
 				case ffj_t_Call_Message_ExecutorID:
 					goto handle_ExecutorID
@@ -3185,9 +3186,9 @@ mainparse:
 		}
 	}
 
-handle_AgentID:
+handle_SlaveID:
 
-	/* handler: uj.AgentID type=mesos.AgentID kind=struct quoted=false*/
+	/* handler: uj.SlaveID type=mesos.SlaveID kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -3196,7 +3197,7 @@ handle_AgentID:
 			goto mainparse
 		}
 
-		err = uj.AgentID.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+		err = uj.SlaveID.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
 			return err
 		}
@@ -3556,13 +3557,13 @@ func (mj *Call_Reconcile_Task) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 
 	}
 	buf.WriteByte(',')
-	if mj.AgentID != nil {
+	if mj.SlaveID != nil {
 		if true {
-			buf.WriteString(`"agent_id":`)
+			buf.WriteString(`"slave_id":`)
 
 			{
 
-				err = mj.AgentID.MarshalJSONBuf(buf)
+				err = mj.SlaveID.MarshalJSONBuf(buf)
 				if err != nil {
 					return err
 				}
@@ -3582,12 +3583,12 @@ const (
 
 	ffj_t_Call_Reconcile_Task_TaskID
 
-	ffj_t_Call_Reconcile_Task_AgentID
+	ffj_t_Call_Reconcile_Task_SlaveID
 )
 
 var ffj_key_Call_Reconcile_Task_TaskID = []byte("task_id")
 
-var ffj_key_Call_Reconcile_Task_AgentID = []byte("agent_id")
+var ffj_key_Call_Reconcile_Task_SlaveID = []byte("slave_id")
 
 func (uj *Call_Reconcile_Task) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
@@ -3648,10 +3649,10 @@ mainparse:
 			} else {
 				switch kn[0] {
 
-				case 'a':
+				case 's':
 
-					if bytes.Equal(ffj_key_Call_Reconcile_Task_AgentID, kn) {
-						currentKey = ffj_t_Call_Reconcile_Task_AgentID
+					if bytes.Equal(ffj_key_Call_Reconcile_Task_SlaveID, kn) {
+						currentKey = ffj_t_Call_Reconcile_Task_SlaveID
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
@@ -3666,8 +3667,8 @@ mainparse:
 
 				}
 
-				if fflib.AsciiEqualFold(ffj_key_Call_Reconcile_Task_AgentID, kn) {
-					currentKey = ffj_t_Call_Reconcile_Task_AgentID
+				if fflib.EqualFoldRight(ffj_key_Call_Reconcile_Task_SlaveID, kn) {
+					currentKey = ffj_t_Call_Reconcile_Task_SlaveID
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
@@ -3698,8 +3699,8 @@ mainparse:
 				case ffj_t_Call_Reconcile_Task_TaskID:
 					goto handle_TaskID
 
-				case ffj_t_Call_Reconcile_Task_AgentID:
-					goto handle_AgentID
+				case ffj_t_Call_Reconcile_Task_SlaveID:
+					goto handle_SlaveID
 
 				case ffj_t_Call_Reconcile_Taskno_such_key:
 					err = fs.SkipField(tok)
@@ -3736,24 +3737,24 @@ handle_TaskID:
 	state = fflib.FFParse_after_value
 	goto mainparse
 
-handle_AgentID:
+handle_SlaveID:
 
-	/* handler: uj.AgentID type=mesos.AgentID kind=struct quoted=false*/
+	/* handler: uj.SlaveID type=mesos.SlaveID kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
 
-			uj.AgentID = nil
+			uj.SlaveID = nil
 
 			state = fflib.FFParse_after_value
 			goto mainparse
 		}
 
-		if uj.AgentID == nil {
-			uj.AgentID = new(mesos.AgentID)
+		if uj.SlaveID == nil {
+			uj.SlaveID = new(mesos.SlaveID)
 		}
 
-		err = uj.AgentID.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+		err = uj.SlaveID.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
 			return err
 		}
@@ -4061,11 +4062,11 @@ func (mj *Call_Shutdown) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 		}
 
 	}
-	buf.WriteString(`,"agent_id":`)
+	buf.WriteString(`,"slave_id":`)
 
 	{
 
-		err = mj.AgentID.MarshalJSONBuf(buf)
+		err = mj.SlaveID.MarshalJSONBuf(buf)
 		if err != nil {
 			return err
 		}
@@ -4081,12 +4082,12 @@ const (
 
 	ffj_t_Call_Shutdown_ExecutorID
 
-	ffj_t_Call_Shutdown_AgentID
+	ffj_t_Call_Shutdown_SlaveID
 )
 
 var ffj_key_Call_Shutdown_ExecutorID = []byte("executor_id")
 
-var ffj_key_Call_Shutdown_AgentID = []byte("agent_id")
+var ffj_key_Call_Shutdown_SlaveID = []byte("slave_id")
 
 func (uj *Call_Shutdown) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
@@ -4147,14 +4148,6 @@ mainparse:
 			} else {
 				switch kn[0] {
 
-				case 'a':
-
-					if bytes.Equal(ffj_key_Call_Shutdown_AgentID, kn) {
-						currentKey = ffj_t_Call_Shutdown_AgentID
-						state = fflib.FFParse_want_colon
-						goto mainparse
-					}
-
 				case 'e':
 
 					if bytes.Equal(ffj_key_Call_Shutdown_ExecutorID, kn) {
@@ -4163,10 +4156,18 @@ mainparse:
 						goto mainparse
 					}
 
+				case 's':
+
+					if bytes.Equal(ffj_key_Call_Shutdown_SlaveID, kn) {
+						currentKey = ffj_t_Call_Shutdown_SlaveID
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
 				}
 
-				if fflib.AsciiEqualFold(ffj_key_Call_Shutdown_AgentID, kn) {
-					currentKey = ffj_t_Call_Shutdown_AgentID
+				if fflib.EqualFoldRight(ffj_key_Call_Shutdown_SlaveID, kn) {
+					currentKey = ffj_t_Call_Shutdown_SlaveID
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
@@ -4197,8 +4198,8 @@ mainparse:
 				case ffj_t_Call_Shutdown_ExecutorID:
 					goto handle_ExecutorID
 
-				case ffj_t_Call_Shutdown_AgentID:
-					goto handle_AgentID
+				case ffj_t_Call_Shutdown_SlaveID:
+					goto handle_SlaveID
 
 				case ffj_t_Call_Shutdownno_such_key:
 					err = fs.SkipField(tok)
@@ -4235,9 +4236,9 @@ handle_ExecutorID:
 	state = fflib.FFParse_after_value
 	goto mainparse
 
-handle_AgentID:
+handle_SlaveID:
 
-	/* handler: uj.AgentID type=mesos.AgentID kind=struct quoted=false*/
+	/* handler: uj.SlaveID type=mesos.SlaveID kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -4246,7 +4247,7 @@ handle_AgentID:
 			goto mainparse
 		}
 
-		err = uj.AgentID.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+		err = uj.SlaveID.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
 			return err
 		}
@@ -4310,6 +4311,16 @@ func (mj *Call_Subscribe) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 			buf.WriteByte(',')
 		}
 	}
+	if mj.Force != nil {
+		if true {
+			if *mj.Force {
+				buf.WriteString(`"force":true`)
+			} else {
+				buf.WriteString(`"force":false`)
+			}
+			buf.WriteByte(',')
+		}
+	}
 	buf.Rewind(1)
 	buf.WriteByte('}')
 	return nil
@@ -4320,9 +4331,13 @@ const (
 	ffj_t_Call_Subscribeno_such_key
 
 	ffj_t_Call_Subscribe_FrameworkInfo
+
+	ffj_t_Call_Subscribe_Force
 )
 
 var ffj_key_Call_Subscribe_FrameworkInfo = []byte("framework_info")
+
+var ffj_key_Call_Subscribe_Force = []byte("force")
 
 func (uj *Call_Subscribe) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
@@ -4389,8 +4404,19 @@ mainparse:
 						currentKey = ffj_t_Call_Subscribe_FrameworkInfo
 						state = fflib.FFParse_want_colon
 						goto mainparse
+
+					} else if bytes.Equal(ffj_key_Call_Subscribe_Force, kn) {
+						currentKey = ffj_t_Call_Subscribe_Force
+						state = fflib.FFParse_want_colon
+						goto mainparse
 					}
 
+				}
+
+				if fflib.SimpleLetterEqualFold(ffj_key_Call_Subscribe_Force, kn) {
+					currentKey = ffj_t_Call_Subscribe_Force
+					state = fflib.FFParse_want_colon
+					goto mainparse
 				}
 
 				if fflib.EqualFoldRight(ffj_key_Call_Subscribe_FrameworkInfo, kn) {
@@ -4418,6 +4444,9 @@ mainparse:
 
 				case ffj_t_Call_Subscribe_FrameworkInfo:
 					goto handle_FrameworkInfo
+
+				case ffj_t_Call_Subscribe_Force:
+					goto handle_Force
 
 				case ffj_t_Call_Subscribeno_such_key:
 					err = fs.SkipField(tok)
@@ -4455,6 +4484,47 @@ handle_FrameworkInfo:
 			return err
 		}
 		state = fflib.FFParse_after_value
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_Force:
+
+	/* handler: uj.Force type=bool kind=bool quoted=false*/
+
+	{
+		if tok != fflib.FFTok_bool && tok != fflib.FFTok_null {
+			return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for bool", tok))
+		}
+	}
+
+	{
+		if tok == fflib.FFTok_null {
+
+			uj.Force = nil
+
+		} else {
+			tmpb := fs.Output.Bytes()
+
+			var tval bool
+
+			if bytes.Compare([]byte{'t', 'r', 'u', 'e'}, tmpb) == 0 {
+
+				tval = true
+
+			} else if bytes.Compare([]byte{'f', 'a', 'l', 's', 'e'}, tmpb) == 0 {
+
+				tval = false
+
+			} else {
+				err = errors.New("unexpected bytes for true/false value")
+				return fs.WrapErr(err)
+			}
+
+			uj.Force = &tval
+
+		}
 	}
 
 	state = fflib.FFParse_after_value
@@ -5461,13 +5531,13 @@ func (mj *Event_Failure) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	_ = obj
 	_ = err
 	buf.WriteString(`{ `)
-	if mj.AgentID != nil {
+	if mj.SlaveID != nil {
 		if true {
-			buf.WriteString(`"agent_id":`)
+			buf.WriteString(`"slave_id":`)
 
 			{
 
-				err = mj.AgentID.MarshalJSONBuf(buf)
+				err = mj.SlaveID.MarshalJSONBuf(buf)
 				if err != nil {
 					return err
 				}
@@ -5507,14 +5577,14 @@ const (
 	ffj_t_Event_Failurebase = iota
 	ffj_t_Event_Failureno_such_key
 
-	ffj_t_Event_Failure_AgentID
+	ffj_t_Event_Failure_SlaveID
 
 	ffj_t_Event_Failure_ExecutorID
 
 	ffj_t_Event_Failure_Status
 )
 
-var ffj_key_Event_Failure_AgentID = []byte("agent_id")
+var ffj_key_Event_Failure_SlaveID = []byte("slave_id")
 
 var ffj_key_Event_Failure_ExecutorID = []byte("executor_id")
 
@@ -5579,14 +5649,6 @@ mainparse:
 			} else {
 				switch kn[0] {
 
-				case 'a':
-
-					if bytes.Equal(ffj_key_Event_Failure_AgentID, kn) {
-						currentKey = ffj_t_Event_Failure_AgentID
-						state = fflib.FFParse_want_colon
-						goto mainparse
-					}
-
 				case 'e':
 
 					if bytes.Equal(ffj_key_Event_Failure_ExecutorID, kn) {
@@ -5597,7 +5659,12 @@ mainparse:
 
 				case 's':
 
-					if bytes.Equal(ffj_key_Event_Failure_Status, kn) {
+					if bytes.Equal(ffj_key_Event_Failure_SlaveID, kn) {
+						currentKey = ffj_t_Event_Failure_SlaveID
+						state = fflib.FFParse_want_colon
+						goto mainparse
+
+					} else if bytes.Equal(ffj_key_Event_Failure_Status, kn) {
 						currentKey = ffj_t_Event_Failure_Status
 						state = fflib.FFParse_want_colon
 						goto mainparse
@@ -5617,8 +5684,8 @@ mainparse:
 					goto mainparse
 				}
 
-				if fflib.AsciiEqualFold(ffj_key_Event_Failure_AgentID, kn) {
-					currentKey = ffj_t_Event_Failure_AgentID
+				if fflib.EqualFoldRight(ffj_key_Event_Failure_SlaveID, kn) {
+					currentKey = ffj_t_Event_Failure_SlaveID
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
@@ -5640,8 +5707,8 @@ mainparse:
 			if tok == fflib.FFTok_left_brace || tok == fflib.FFTok_left_bracket || tok == fflib.FFTok_integer || tok == fflib.FFTok_double || tok == fflib.FFTok_string || tok == fflib.FFTok_bool || tok == fflib.FFTok_null {
 				switch currentKey {
 
-				case ffj_t_Event_Failure_AgentID:
-					goto handle_AgentID
+				case ffj_t_Event_Failure_SlaveID:
+					goto handle_SlaveID
 
 				case ffj_t_Event_Failure_ExecutorID:
 					goto handle_ExecutorID
@@ -5663,24 +5730,24 @@ mainparse:
 		}
 	}
 
-handle_AgentID:
+handle_SlaveID:
 
-	/* handler: uj.AgentID type=mesos.AgentID kind=struct quoted=false*/
+	/* handler: uj.SlaveID type=mesos.SlaveID kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
 
-			uj.AgentID = nil
+			uj.SlaveID = nil
 
 			state = fflib.FFParse_after_value
 			goto mainparse
 		}
 
-		if uj.AgentID == nil {
-			uj.AgentID = new(mesos.AgentID)
+		if uj.SlaveID == nil {
+			uj.SlaveID = new(mesos.SlaveID)
 		}
 
-		err = uj.AgentID.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+		err = uj.SlaveID.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
 			return err
 		}
@@ -6038,11 +6105,11 @@ func (mj *Event_Message) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	var obj []byte
 	_ = obj
 	_ = err
-	buf.WriteString(`{ "agent_id":`)
+	buf.WriteString(`{ "slave_id":`)
 
 	{
 
-		err = mj.AgentID.MarshalJSONBuf(buf)
+		err = mj.SlaveID.MarshalJSONBuf(buf)
 		if err != nil {
 			return err
 		}
@@ -6083,14 +6150,14 @@ const (
 	ffj_t_Event_Messagebase = iota
 	ffj_t_Event_Messageno_such_key
 
-	ffj_t_Event_Message_AgentID
+	ffj_t_Event_Message_SlaveID
 
 	ffj_t_Event_Message_ExecutorID
 
 	ffj_t_Event_Message_Data
 )
 
-var ffj_key_Event_Message_AgentID = []byte("agent_id")
+var ffj_key_Event_Message_SlaveID = []byte("slave_id")
 
 var ffj_key_Event_Message_ExecutorID = []byte("executor_id")
 
@@ -6155,14 +6222,6 @@ mainparse:
 			} else {
 				switch kn[0] {
 
-				case 'a':
-
-					if bytes.Equal(ffj_key_Event_Message_AgentID, kn) {
-						currentKey = ffj_t_Event_Message_AgentID
-						state = fflib.FFParse_want_colon
-						goto mainparse
-					}
-
 				case 'd':
 
 					if bytes.Equal(ffj_key_Event_Message_Data, kn) {
@@ -6175,6 +6234,14 @@ mainparse:
 
 					if bytes.Equal(ffj_key_Event_Message_ExecutorID, kn) {
 						currentKey = ffj_t_Event_Message_ExecutorID
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 's':
+
+					if bytes.Equal(ffj_key_Event_Message_SlaveID, kn) {
+						currentKey = ffj_t_Event_Message_SlaveID
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
@@ -6193,8 +6260,8 @@ mainparse:
 					goto mainparse
 				}
 
-				if fflib.AsciiEqualFold(ffj_key_Event_Message_AgentID, kn) {
-					currentKey = ffj_t_Event_Message_AgentID
+				if fflib.EqualFoldRight(ffj_key_Event_Message_SlaveID, kn) {
+					currentKey = ffj_t_Event_Message_SlaveID
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
@@ -6216,8 +6283,8 @@ mainparse:
 			if tok == fflib.FFTok_left_brace || tok == fflib.FFTok_left_bracket || tok == fflib.FFTok_integer || tok == fflib.FFTok_double || tok == fflib.FFTok_string || tok == fflib.FFTok_bool || tok == fflib.FFTok_null {
 				switch currentKey {
 
-				case ffj_t_Event_Message_AgentID:
-					goto handle_AgentID
+				case ffj_t_Event_Message_SlaveID:
+					goto handle_SlaveID
 
 				case ffj_t_Event_Message_ExecutorID:
 					goto handle_ExecutorID
@@ -6239,9 +6306,9 @@ mainparse:
 		}
 	}
 
-handle_AgentID:
+handle_SlaveID:
 
-	/* handler: uj.AgentID type=mesos.AgentID kind=struct quoted=false*/
+	/* handler: uj.SlaveID type=mesos.SlaveID kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -6250,7 +6317,7 @@ handle_AgentID:
 			goto mainparse
 		}
 
-		err = uj.AgentID.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+		err = uj.SlaveID.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
 			return err
 		}
@@ -7004,6 +7071,21 @@ func (mj *Event_Subscribed) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 			buf.WriteByte(',')
 		}
 	}
+	if mj.MasterInfo != nil {
+		if true {
+			buf.WriteString(`"master_info":`)
+
+			{
+
+				err = mj.MasterInfo.MarshalJSONBuf(buf)
+				if err != nil {
+					return err
+				}
+
+			}
+			buf.WriteByte(',')
+		}
+	}
 	buf.Rewind(1)
 	buf.WriteByte('}')
 	return nil
@@ -7016,11 +7098,15 @@ const (
 	ffj_t_Event_Subscribed_FrameworkID
 
 	ffj_t_Event_Subscribed_HeartbeatIntervalSeconds
+
+	ffj_t_Event_Subscribed_MasterInfo
 )
 
 var ffj_key_Event_Subscribed_FrameworkID = []byte("framework_id")
 
 var ffj_key_Event_Subscribed_HeartbeatIntervalSeconds = []byte("heartbeat_interval_seconds")
+
+var ffj_key_Event_Subscribed_MasterInfo = []byte("master_info")
 
 func (uj *Event_Subscribed) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
@@ -7097,6 +7183,20 @@ mainparse:
 						goto mainparse
 					}
 
+				case 'm':
+
+					if bytes.Equal(ffj_key_Event_Subscribed_MasterInfo, kn) {
+						currentKey = ffj_t_Event_Subscribed_MasterInfo
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				}
+
+				if fflib.EqualFoldRight(ffj_key_Event_Subscribed_MasterInfo, kn) {
+					currentKey = ffj_t_Event_Subscribed_MasterInfo
+					state = fflib.FFParse_want_colon
+					goto mainparse
 				}
 
 				if fflib.EqualFoldRight(ffj_key_Event_Subscribed_HeartbeatIntervalSeconds, kn) {
@@ -7133,6 +7233,9 @@ mainparse:
 
 				case ffj_t_Event_Subscribed_HeartbeatIntervalSeconds:
 					goto handle_HeartbeatIntervalSeconds
+
+				case ffj_t_Event_Subscribed_MasterInfo:
+					goto handle_MasterInfo
 
 				case ffj_t_Event_Subscribedno_such_key:
 					err = fs.SkipField(tok)
@@ -7203,6 +7306,33 @@ handle_HeartbeatIntervalSeconds:
 			uj.HeartbeatIntervalSeconds = &ttypval
 
 		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_MasterInfo:
+
+	/* handler: uj.MasterInfo type=mesos.MasterInfo kind=struct quoted=false*/
+
+	{
+		if tok == fflib.FFTok_null {
+
+			uj.MasterInfo = nil
+
+			state = fflib.FFParse_after_value
+			goto mainparse
+		}
+
+		if uj.MasterInfo == nil {
+			uj.MasterInfo = new(mesos.MasterInfo)
+		}
+
+		err = uj.MasterInfo.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+		if err != nil {
+			return err
+		}
+		state = fflib.FFParse_after_value
 	}
 
 	state = fflib.FFParse_after_value
