@@ -150,7 +150,7 @@ func buildEventHandler(state *internalState) events.Handler {
 			log.Println("SUBSCRIBED")
 			state.framework = e.Subscribed.FrameworkInfo
 			state.executor = e.Subscribed.ExecutorInfo
-			state.agent = e.Subscribed.AgentInfo
+			state.slave = e.Subscribed.SlaveInfo
 			return nil
 		})),
 		events.Handle(executor.Event_LAUNCH, events.HandlerFunc(func(e *executor.Event) error {
@@ -255,7 +255,7 @@ type internalState struct {
 	cfg            config.Config
 	framework      mesos.FrameworkInfo
 	executor       mesos.ExecutorInfo
-	agent          mesos.AgentInfo
+	slave          mesos.SlaveInfo
 	unackedTasks   map[mesos.TaskID]mesos.TaskInfo
 	unackedUpdates map[string]executor.Call_Update
 	failedTasks    map[mesos.TaskID]mesos.TaskStatus // send updates for these as we can

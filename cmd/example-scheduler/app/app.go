@@ -83,7 +83,7 @@ func buildEventHandler(state *internalState) events.Handler {
 			scheduler.Event_FAILURE: func(e *scheduler.Event) error {
 				log.Println("received a FAILURE event")
 				f := e.GetFailure()
-				failure(f.ExecutorID, f.AgentID, f.Status)
+				failure(f.ExecutorID, f.SlaveID, f.Status)
 				return nil
 			},
 			scheduler.Event_OFFERS: func(e *scheduler.Event) error {
@@ -122,7 +122,7 @@ func buildEventHandler(state *internalState) events.Handler {
 	)
 }
 
-func failure(eid *mesos.ExecutorID, aid *mesos.AgentID, stat *int32) {
+func failure(eid *mesos.ExecutorID, aid *mesos.SlaveID, stat *int32) {
 	if eid != nil {
 		// executor failed..
 		msg := "executor '" + eid.Value + "' terminated"
@@ -181,7 +181,7 @@ func resourceOffers(state *internalState, offers []mesos.Offer) {
 
 			task := mesos.TaskInfo{
 				TaskID:    mesos.TaskID{Value: strconv.Itoa(taskID)},
-				AgentID:   offers[i].AgentID,
+				SlaveID:   offers[i].SlaveID,
 				Executor:  state.executor,
 				Resources: remaining.Find(state.wantsTaskResources.Flatten(mesos.RoleName(state.role).Assign())),
 			}
