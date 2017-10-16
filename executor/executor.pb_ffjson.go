@@ -55,23 +55,18 @@ func (mj *Call) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 		}
 
 	}
-	buf.WriteByte(',')
-	if mj.Type != nil {
-		if true {
-			buf.WriteString(`"type":`)
+	buf.WriteString(`,"type":`)
 
-			{
+	{
 
-				obj, err = mj.Type.MarshalJSON()
-				if err != nil {
-					return err
-				}
-				buf.Write(obj)
-
-			}
-			buf.WriteByte(',')
+		obj, err = mj.Type.MarshalJSON()
+		if err != nil {
+			return err
 		}
+		buf.Write(obj)
+
 	}
+	buf.WriteByte(',')
 	if mj.Subscribe != nil {
 		if true {
 			buf.WriteString(`"subscribe":`)
@@ -394,8 +389,6 @@ handle_Type:
 	{
 		if tok == fflib.FFTok_null {
 
-			uj.Type = nil
-
 			state = fflib.FFParse_after_value
 			goto mainparse
 		}
@@ -403,10 +396,6 @@ handle_Type:
 		tbuf, err := fs.CaptureField(tok)
 		if err != nil {
 			return fs.WrapErr(err)
-		}
-
-		if uj.Type == nil {
-			uj.Type = new(Call_Type)
 		}
 
 		err = uj.Type.UnmarshalJSON(tbuf)
@@ -514,6 +503,7 @@ tokerror:
 	}
 	panic("ffjson-generated: unreachable, please report bug.")
 done:
+
 	return nil
 }
 
@@ -721,6 +711,7 @@ tokerror:
 	}
 	panic("ffjson-generated: unreachable, please report bug.")
 done:
+
 	return nil
 }
 
@@ -1079,6 +1070,7 @@ tokerror:
 	}
 	panic("ffjson-generated: unreachable, please report bug.")
 done:
+
 	return nil
 }
 
@@ -1270,6 +1262,7 @@ tokerror:
 	}
 	panic("ffjson-generated: unreachable, please report bug.")
 done:
+
 	return nil
 }
 
@@ -1294,23 +1287,18 @@ func (mj *Event) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	var obj []byte
 	_ = obj
 	_ = err
-	buf.WriteString(`{ `)
-	if mj.Type != nil {
-		if true {
-			buf.WriteString(`"type":`)
+	buf.WriteString(`{ "type":`)
 
-			{
+	{
 
-				obj, err = mj.Type.MarshalJSON()
-				if err != nil {
-					return err
-				}
-				buf.Write(obj)
-
-			}
-			buf.WriteByte(',')
+		obj, err = mj.Type.MarshalJSON()
+		if err != nil {
+			return err
 		}
+		buf.Write(obj)
+
 	}
+	buf.WriteByte(',')
 	if mj.Subscribed != nil {
 		if true {
 			buf.WriteString(`"subscribed":`)
@@ -1690,8 +1678,6 @@ handle_Type:
 	{
 		if tok == fflib.FFTok_null {
 
-			uj.Type = nil
-
 			state = fflib.FFParse_after_value
 			goto mainparse
 		}
@@ -1699,10 +1685,6 @@ handle_Type:
 		tbuf, err := fs.CaptureField(tok)
 		if err != nil {
 			return fs.WrapErr(err)
-		}
-
-		if uj.Type == nil {
-			uj.Type = new(Event_Type)
 		}
 
 		err = uj.Type.UnmarshalJSON(tbuf)
@@ -1918,6 +1900,7 @@ tokerror:
 	}
 	panic("ffjson-generated: unreachable, please report bug.")
 done:
+
 	return nil
 }
 
@@ -2177,6 +2160,7 @@ tokerror:
 	}
 	panic("ffjson-generated: unreachable, please report bug.")
 done:
+
 	return nil
 }
 
@@ -2365,6 +2349,7 @@ tokerror:
 	}
 	panic("ffjson-generated: unreachable, please report bug.")
 done:
+
 	return nil
 }
 
@@ -2621,6 +2606,7 @@ tokerror:
 	}
 	panic("ffjson-generated: unreachable, please report bug.")
 done:
+
 	return nil
 }
 
@@ -2812,6 +2798,7 @@ tokerror:
 	}
 	panic("ffjson-generated: unreachable, please report bug.")
 done:
+
 	return nil
 }
 
@@ -3003,6 +2990,7 @@ tokerror:
 	}
 	panic("ffjson-generated: unreachable, please report bug.")
 done:
+
 	return nil
 }
 
@@ -3210,6 +3198,7 @@ tokerror:
 	}
 	panic("ffjson-generated: unreachable, please report bug.")
 done:
+
 	return nil
 }
 
@@ -3254,11 +3243,11 @@ func (mj *Event_Subscribed) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 		}
 
 	}
-	buf.WriteString(`,"slave_info":`)
+	buf.WriteString(`,"agent_info":`)
 
 	{
 
-		err = mj.SlaveInfo.MarshalJSONBuf(buf)
+		err = mj.AgentInfo.MarshalJSONBuf(buf)
 		if err != nil {
 			return err
 		}
@@ -3293,7 +3282,7 @@ const (
 
 	ffj_t_Event_Subscribed_FrameworkInfo
 
-	ffj_t_Event_Subscribed_SlaveInfo
+	ffj_t_Event_Subscribed_AgentInfo
 
 	ffj_t_Event_Subscribed_ContainerID
 )
@@ -3302,7 +3291,7 @@ var ffj_key_Event_Subscribed_ExecutorInfo = []byte("executor_info")
 
 var ffj_key_Event_Subscribed_FrameworkInfo = []byte("framework_info")
 
-var ffj_key_Event_Subscribed_SlaveInfo = []byte("slave_info")
+var ffj_key_Event_Subscribed_AgentInfo = []byte("agent_info")
 
 var ffj_key_Event_Subscribed_ContainerID = []byte("container_id")
 
@@ -3365,6 +3354,14 @@ mainparse:
 			} else {
 				switch kn[0] {
 
+				case 'a':
+
+					if bytes.Equal(ffj_key_Event_Subscribed_AgentInfo, kn) {
+						currentKey = ffj_t_Event_Subscribed_AgentInfo
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
 				case 'c':
 
 					if bytes.Equal(ffj_key_Event_Subscribed_ContainerID, kn) {
@@ -3389,14 +3386,6 @@ mainparse:
 						goto mainparse
 					}
 
-				case 's':
-
-					if bytes.Equal(ffj_key_Event_Subscribed_SlaveInfo, kn) {
-						currentKey = ffj_t_Event_Subscribed_SlaveInfo
-						state = fflib.FFParse_want_colon
-						goto mainparse
-					}
-
 				}
 
 				if fflib.AsciiEqualFold(ffj_key_Event_Subscribed_ContainerID, kn) {
@@ -3405,8 +3394,8 @@ mainparse:
 					goto mainparse
 				}
 
-				if fflib.EqualFoldRight(ffj_key_Event_Subscribed_SlaveInfo, kn) {
-					currentKey = ffj_t_Event_Subscribed_SlaveInfo
+				if fflib.AsciiEqualFold(ffj_key_Event_Subscribed_AgentInfo, kn) {
+					currentKey = ffj_t_Event_Subscribed_AgentInfo
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
@@ -3446,8 +3435,8 @@ mainparse:
 				case ffj_t_Event_Subscribed_FrameworkInfo:
 					goto handle_FrameworkInfo
 
-				case ffj_t_Event_Subscribed_SlaveInfo:
-					goto handle_SlaveInfo
+				case ffj_t_Event_Subscribed_AgentInfo:
+					goto handle_AgentInfo
 
 				case ffj_t_Event_Subscribed_ContainerID:
 					goto handle_ContainerID
@@ -3508,9 +3497,9 @@ handle_FrameworkInfo:
 	state = fflib.FFParse_after_value
 	goto mainparse
 
-handle_SlaveInfo:
+handle_AgentInfo:
 
-	/* handler: uj.SlaveInfo type=mesos.SlaveInfo kind=struct quoted=false*/
+	/* handler: uj.AgentInfo type=mesos.AgentInfo kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -3519,7 +3508,7 @@ handle_SlaveInfo:
 			goto mainparse
 		}
 
-		err = uj.SlaveInfo.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+		err = uj.AgentInfo.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
 			return err
 		}
@@ -3570,5 +3559,6 @@ tokerror:
 	}
 	panic("ffjson-generated: unreachable, please report bug.")
 done:
+
 	return nil
 }

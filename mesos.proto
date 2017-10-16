@@ -14,6 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+syntax = "proto2";
+
 package mesos;
 
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
@@ -29,12 +31,19 @@ option (gogoproto.goproto_unrecognized_all) = false;
 option (gogoproto.gostring_all) = true;
 option (gogoproto.marshaler_all) = true;
 option (gogoproto.populate_all) = true;
-option (gogoproto.sizer_all) = true;
+option (gogoproto.protosizer_all) = true;
 option (gogoproto.stringer_all) =  true;
 option (gogoproto.testgen_all) = true;
 option (gogoproto.unmarshaler_all) = true;
 option (gogoproto.verbose_equal_all) = true;
 
+// NOTES: (gogogo protobuf for idiomatic Golang)
+// - enum fields may be nullable if the default enum value is 0, otherwise the Golang zero-value of the enum isn't valid.
+// - enums that declare UNKNOWN or other commonly used tokens should specify the goproto_enum_prefix option.
+// - required fields are generally marked nullable
+// - arrays of non-native types are generally marked nullable
+// - fields w/ acronyms are generally renamed (via customname) to be idiomatic w/ respect to Golang
+// - fields w/ glued acronyms are also renamed at the author's discretion w/ respect to legibility
 
 /**
  * Status is used to indicate the state of the scheduler and executor
@@ -66,11 +75,11 @@ message OfferID {
 
 
 /**
- * A unique ID assigned to a slave. Currently, a slave gets a new ID
+ * A unique ID assigned to an agent. Currently, an agent gets a new ID
  * whenever it (re)registers with Mesos. Framework writers shouldn't
- * assume any binding between a slave ID and and a hostname.
+ * assume any binding between an agent ID and and a hostname.
  */
-message SlaveID {
+message AgentID {
   required string value = 1 [(gogoproto.nullable) = false];
 }
 
@@ -89,7 +98,7 @@ message TaskID {
 
 /**
  * A framework-generated ID to distinguish an executor. Only one
- * executor with the same ID can be active on the same slave at a
+ * executor with the same ID can be active on the same agent at a
  * time. However, reusing executor IDs is discouraged.
  */
 message ExecutorID {
@@ -110,12 +119,19 @@ message ContainerID {
 
 
 /**
+ * A unique ID assigned to a resource provider. Currently, a resource
+ * provider gets a new ID whenever it (re)registers with Mesos.
+ */
+message ResourceProviderID {
+  required string value = 1 [(gogoproto.nullable) = false];
+}
+
+
+/**
  * Represents time since the epoch, in nanoseconds.
  */
 message TimeInfo {
   required int64 nanoseconds = 1 [(gogoproto.nullable) = false];
-
-  // TODO(josephw): Add time zone information, if necessary.
 }
 
 
@@ -171,10 +187,10 @@ message Unavailability {
 
 
 /**
- * Represents a single machine, which may hold one or more slaves.
+ * Represents a single machine, which may hold one or more agents.
  *
- * NOTE: In order to match a slave to a machine, both the `hostname` and
- * `ip` must match the values advertised by the slave to the master.
+ * NOTE: In order to match an agent to a machine, both the `hostname` and
+ * `ip` must match the values advertised by the agent to the master.
  * Hostname is not case-sensitive.
  */
 message MachineID {
@@ -189,13 +205,13 @@ message MachineID {
  */
 message MachineInfo {
   // Describes the several states that a machine can be in.  A `Mode`
-  // applies to a machine and to all associated slaves on the machine.
+  // applies to a machine and to all associated agents on the machine.
   enum Mode {
     // In this mode, a machine is behaving normally;
     // offering resources, executing tasks, etc.
     UP = 1;
 
-    // In this mode, all slaves on the machine are expected to cooperate with
+    // In this mode, all agents on the machine are expected to cooperate with
     // frameworks to drain resources.  In general, draining is done ahead of
     // a pending `unavailability`.  The resources should be drained so as to
     // maximize utilization prior to the maintenance but without knowingly
@@ -203,7 +219,7 @@ message MachineInfo {
     DRAINING = 2;
 
     // In this mode, a machine is not running any tasks and will not offer
-    // any of its resources.  Slaves on the machine will not be allowed to
+    // any of its resources.  Agents on the machine will not be allowed to
     // register with the master.
     DOWN = 3;
   }
@@ -250,7 +266,7 @@ message FrameworkInfo {
   //
   // NOTE: To avoid accidental destruction of tasks, production
   // frameworks typically set this to a large value (e.g., 1 week).
-  optional double failover_timeout = 4 [default = 0.0, (gogoproto.customname) = "FailoverTimeout"];
+  optional double failover_timeout = 4 [default = 0.0];
 
   // If set, agents running tasks started by this framework will write
   // the framework pid, executor pids and status updates to disk. If
@@ -269,11 +285,8 @@ message FrameworkInfo {
   // `roles` and the default unset `role`, we require that
   // frameworks set the `MULTI_ROLE` capability if
   // setting the `roles` field.
-  //
-  // NOTE: The implmentation for supporting `roles`
-  // is not complete, DO NOT USE the `roles` field.
   optional string role = 6 [default = "*", deprecated=true];
-  repeated string roles = 12; // EXPERIMENTAL.
+  repeated string roles = 12;
 
   // Used to indicate the current host from which the scheduler is
   // registered in the Mesos Web UI. If set to an empty string Mesos
@@ -290,7 +303,7 @@ message FrameworkInfo {
   // This field allows a framework to advertise its web UI, so that
   // the Mesos web UI can link to it. It is expected to be a full URL,
   // for example http://my-scheduler.example.com:8080/.
-  optional string webui_url = 9;
+  optional string webui_url = 9 [(gogoproto.customname) = "WebUiURL"];
 
   message Capability {
     enum Type {
@@ -352,10 +365,7 @@ message FrameworkInfo {
       // expect that "single-tenant" schedulers eventually
       // provide this and move away from the deprecated
       // `role` field.
-      //
-      // NOTE: The implementation for supporting multiple
-      // roles is not complete, DO NOT USE THIS.
-      MULTI_ROLE = 6; // EXPERIMENTAL.
+      MULTI_ROLE = 6;
 
       option (gogoproto.goproto_enum_prefix) = true;
     }
@@ -390,45 +400,69 @@ message CheckInfo {
     UNKNOWN = 0;
     COMMAND = 1;
     HTTP = 2;
-    // TODO(alexr): Consider supporting TCP checks and custom user checks.
-    // The latter should probably be paired with a `data` field and
-    // complemented by a `data` response in `CheckStatusInfo`.
+    TCP = 3;
+
+    // TODO(alexr): Consider supporting custom user checks. They should
+    // probably be paired with a `data` field and complemented by a
+    // `data` response in `CheckStatusInfo`.
 
     option (gogoproto.goproto_enum_prefix) = true;
   }
+
   // Describes a command check. If applicable, enters mount and/or network
   // namespaces of the task.
   message Command {
     required CommandInfo command = 1 [(gogoproto.nullable) = false];
   }
+
   // Describes an HTTP check. Sends a GET request to
   // http://<host>:port/path. Note that <host> is not configurable and is
   // resolved automatically to 127.0.0.1.
   message Http {
     // Port to send the HTTP request.
     required uint32 port = 1 [(gogoproto.nullable) = false];
+
     // HTTP request path.
     optional string path = 2;
+
     // TODO(alexr): Add support for HTTP method. While adding POST
     // and PUT is simple, supporting payload is more involved.
+
     // TODO(alexr): Add support for custom HTTP headers.
+
     // TODO(alexr): Consider adding an optional message to describe TLS
     // options and thus enabling https. Such message might contain certificate
     // validation, TLS version.
   }
+
+  // Describes a TCP check, i.e. based on establishing a TCP connection to
+  // the specified port. Note that <host> is not configurable and is resolved
+  // automatically to 127.0.0.1.
+  message Tcp {
+    required uint32 port = 1 [(gogoproto.nullable) = false];
+  }
+
   // The type of the check.
-  optional Type type = 1;
+  optional Type type = 1 [(gogoproto.nullable) = false];
+
   // Command check.
   optional Command command = 2;
+
   // HTTP check.
-  optional Http http = 3;
+  optional Http http = 3 [(gogoproto.customname) = "HTTP"];
+
+  // TCP check.
+  optional Tcp tcp = 7 [(gogoproto.customname) = "TCP"];
+
   // Amount of time to wait to start checking the task after it
   // transitions to `TASK_RUNNING` or `TASK_STARTING` if the latter
   // is used by the executor.
-  optional double delay_seconds = 4 [default = 15.0, (gogoproto.customname) = "DelaySeconds"];
+  optional double delay_seconds = 4 [default = 15.0];
+
   // Interval between check attempts, i.e., amount of time to wait after
   // the previous check finished or timed out to start the next check.
-  optional double interval_seconds = 5 [default = 10.0, (gogoproto.customname) = "IntervalSeconds"];
+  optional double interval_seconds = 5 [default = 10.0];
+
   // Amount of time to wait for the check to complete. Zero means infinite
   // timeout.
   //
@@ -436,7 +470,7 @@ message CheckInfo {
   // reported. Note that this may be considered a state change and hence
   // may trigger a check status change delivery to the corresponding
   // scheduler. See `CheckStatusInfo` for more details.
-  optional double timeout_seconds = 6 [default = 20.0, (gogoproto.customname) = "TimeoutSeconds"];
+  optional double timeout_seconds = 6 [default = 20.0];
 }
 
 
@@ -451,6 +485,7 @@ message HealthCheck {
     COMMAND = 1;
     HTTP = 2;
     TCP = 3;
+
     option (gogoproto.goproto_enum_prefix) = true;
   }
 
@@ -461,13 +496,13 @@ message HealthCheck {
   // may employ a different strategy, e.g. leveraging the `statuses` field.
   message HTTPCheckInfo {
     // Currently "http" and "https" are supported.
-    optional string scheme = 3 [default = "http"];
+    optional string scheme = 3;
 
     // Port to send the HTTP request.
     required uint32 port = 1 [(gogoproto.nullable) = false];
 
     // HTTP request path.
-    optional string path = 2 [default = "/"];
+    optional string path = 2;
 
     // TODO(alexr): Add support for HTTP method. While adding POST
     // and PUT is simple, supporting payload is more involved.
@@ -532,16 +567,16 @@ message HealthCheck {
   // if the task is killed because of a health check failure.
 
   // The type of health check.
-  optional Type type = 8;
+  optional Type type = 8 [(gogoproto.nullable) = false];
 
   // Command health check.
   optional CommandInfo command = 7;
 
   // HTTP health check.
-  optional HTTPCheckInfo http = 1;
+  optional HTTPCheckInfo http = 1 [(gogoproto.customname) = "HTTP"];
 
   // TCP health check.
-  optional TCPCheckInfo tcp = 9;
+  optional TCPCheckInfo tcp = 9 [(gogoproto.customname) = "TCP"];
 }
 
 
@@ -669,6 +704,7 @@ message ExecutorInfo {
     // executor can be used. Note that `command` must be set when using a
     // `CUSTOM` executor.
     CUSTOM = 2;
+
     option (gogoproto.goproto_enum_prefix) = true;
   }
 
@@ -679,11 +715,11 @@ message ExecutorInfo {
   //
   // TODO(vinod): Add support for explicitly setting `type` to `DEFAULT `
   // in `LAUNCH` offer operation.
-  optional Type type = 15;
+  optional Type type = 15 [(gogoproto.nullable) = false];
 
   required ExecutorID executor_id = 1 [(gogoproto.nullable) = false, (gogoproto.customname) = "ExecutorID"];
   optional FrameworkID framework_id = 8 [(gogoproto.customname) = "FrameworkID"]; // TODO(benh): Make this required.
-  optional CommandInfo command = 7 [(gogoproto.nullable) = false];
+  optional CommandInfo command = 7;
 
   // Executor provided with a container will launch the container
   // with the executor's CommandInfo and we expect the container to
@@ -698,7 +734,7 @@ message ExecutorInfo {
   // possible for different executor ids to be related semantically.
   //
   // NOTE: 'source' is exposed alongside the resource usage of the
-  // executor via JSON on the slave. This allows users to import usage
+  // executor via JSON on the agent. This allows users to import usage
   // information into a time series database for monitoring.
   //
   // This field is deprecated since 1.0. Please use labels for
@@ -723,9 +759,9 @@ message ExecutorInfo {
   optional DurationInfo shutdown_grace_period = 13;
 
   // Labels are free-form key value pairs which are exposed through
-  // master and slave endpoints. Labels will not be interpreted or
+  // master and agent endpoints. Labels will not be interpreted or
   // acted upon by Mesos itself. As opposed to the data field, labels
-  // will be kept in memory on master and slave processes. Therefore,
+  // will be kept in memory on master and agent processes. Therefore,
   // labels should be used to tag executors with lightweight metadata.
   // Labels should not contain duplicate key-value pairs.
   optional Labels labels = 14;
@@ -772,22 +808,16 @@ message MasterInfo {
 
 
 /**
- * Describes a slave. Note that the 'id' field is only available after
- * a slave is registered with the master, and is made available here
- * to facilitate re-registration.
+ * Describes an agent. Note that the 'id' field is only available
+ * after an agent is registered with the master, and is made available
+ * here to facilitate re-registration.
  */
-message SlaveInfo {
+message AgentInfo {
   required string hostname = 1 [(gogoproto.nullable) = false];
   optional int32 port = 8 [default = 5051];
   repeated Resource resources = 3 [(gogoproto.nullable) = false];
   repeated Attribute attributes = 5 [(gogoproto.nullable) = false];
-  optional SlaveID id = 6 [(gogoproto.customname) = "ID"];
-
-  // Slave checkpointing is always enabled in recent Mesos versions;
-  // the value of this field is ignored.
-  // TODO(joerg84): Remove checkpoint field after deprecation cycle starting
-  // with 0.27 (MESOS-2317).
-  optional bool checkpoint = 7 [default = false];
+  optional AgentID id = 6 [(gogoproto.customname) = "ID"];
 
   message Capability {
     enum Type {
@@ -796,16 +826,16 @@ message SlaveInfo {
       // is UNKNOWN. This enables enum values to be added
       // in a backwards-compatible way. See: MESOS-4997.
       UNKNOWN = 0;
+
       // This expresses the ability for the agent to be able
       // to launch tasks of a 'multi-role' framework.
-      //
-      // NOTE: The implementation for supporting multiple
-      // roles is not complete, DO NOT USE THIS.
-      MULTI_ROLE = 1; // EXPERIMENTAL.
+      MULTI_ROLE = 1;
+
       option (gogoproto.goproto_enum_prefix) = true;
     }
+
     // Enum fields should be optional, see: MESOS-4997.
-    optional Type type = 1;
+    optional Type type = 1 [(gogoproto.nullable) = false];
   }
 }
 
@@ -851,7 +881,7 @@ message Value {
     required string value = 1 [(gogoproto.nullable) = false];
   }
 
-  required Type type = 1;
+  required Type type = 1 [(gogoproto.nullable) = false];
   optional Scalar scalar = 2;
   optional Ranges ranges = 3;
   optional Set set = 4;
@@ -866,7 +896,7 @@ message Value {
  */
 message Attribute {
   required string name = 1 [(gogoproto.nullable) = false];
-  required Value.Type type = 2;
+  required Value.Type type = 2 [(gogoproto.nullable) = false];
   optional Value.Scalar scalar = 3;
   optional Value.Ranges ranges = 4;
   optional Value.Set set = 6;
@@ -875,19 +905,21 @@ message Attribute {
 
 
 /**
- * Describes a resource on a machine. The `name` field is a string
- * like "cpus" or "mem" that indicates which kind of resource this is;
- * the rest of the fields describe the properties of the resource. A
- * resource can take on one of three types: scalar (double), a list of
- * finite and discrete ranges (e.g., [1-10, 20-30]), or a set of
- * items. A resource is described using the standard protocol buffer
- * "union" trick.
+ * Describes a resource from a resource provider. The `name` field is
+ * a string like "cpus" or "mem" that indicates which kind of resource
+ * this is; the rest of the fields describe the properties of the
+ * resource. A resource can take on one of three types: scalar
+ * (double), a list of finite and discrete ranges (e.g., [1-10,
+ * 20-30]), or a set of items. A resource is described using the
+ * standard protocol buffer "union" trick.
  *
  * Note that "disk" and "mem" resources are scalar values expressed in
  * megabytes. Fractional "cpus" values are allowed (e.g., "0.5"),
  * which correspond to partial shares of a CPU.
  */
 message Resource {
+  optional ResourceProviderID provider_id = 12 [(gogoproto.customname) = "ProviderID"];
+
   required string name = 1 [(gogoproto.nullable) = false];
   required Value.Type type = 2;
   optional Value.Scalar scalar = 3;
@@ -898,22 +930,22 @@ message Resource {
   // that the resource is unreserved. Otherwise, the resource will only
   // be offered to frameworks that belong to this role.
   optional string role = 6 [default = "*"];
-  
+
   // This was initially introduced to support MULTI_ROLE capable
   // frameworks. Frameworks that are not MULTI_ROLE capable can
   // continue to assume that the offered resources are allocated
   // to their role.
-  //
-  // NOTE: Implementation of this is in-progress, DO NOT USE!
   message AllocationInfo {
     // If set, this resource is allocated to a role. Note that in the
     // future, this may be unset and the scheduler may be responsible
     // for allocating to one of its roles.
     optional string role = 1;
+
     // In the future, we may add additional fields here, e.g. priority
     // tier, type of allocation (quota / fair share).
   }
-  optional AllocationInfo allocation_info = 11 [(gogoproto.customname) = "AllocationInfo"];
+
+  optional AllocationInfo allocation_info = 11;
 
   message ReservationInfo {
     // Describes a dynamic reservation. A dynamic reservation is
@@ -935,7 +967,7 @@ message Resource {
     // associate arbitrary metadata with a reserved resource.  For
     // example, frameworks can use labels to identify the intended
     // purpose for a portion of the resources the framework has
-    // reserved at a given slave. Labels should not contain duplicate
+    // reserved at a given agent. Labels should not contain duplicate
     // key-value pairs.
     optional Labels labels = 2;
   }
@@ -949,15 +981,15 @@ message Resource {
     // Describes a persistent disk volume.
     //
     // A persistent disk volume will not be automatically garbage
-    // collected if the task/executor/slave terminates, but will be
+    // collected if the task/executor/agent terminates, but will be
     // re-offered to the framework(s) belonging to the 'role'.
     //
     // NOTE: Currently, we do not allow persistent disk volumes
     // without a reservation (i.e., 'role' cannot be '*').
     message Persistence {
       // A unique ID for the persistent disk volume. This ID must be
-      // unique per role on each slave. Although it is possible to use
-      // the same ID on different slaves in the cluster and to reuse
+      // unique per role on each agent. Although it is possible to use
+      // the same ID on different agents in the cluster and to reuse
       // IDs after a volume with that ID has been destroyed, both
       // practices are discouraged.
       required string id = 1 [(gogoproto.nullable) = false, (gogoproto.customname) = "ID"];
@@ -989,6 +1021,7 @@ message Resource {
     // TODO(jmlvanre): Add support for BLOCK devices.
     message Source {
       enum Type {
+        UNKNOWN = 0;
         PATH = 1;
         MOUNT = 2;
       }
@@ -997,7 +1030,7 @@ message Resource {
       // can be shared and carved up as necessary between frameworks.
       message Path {
         // Path to the folder (e.g., /mnt/raid/disk0).
-        required string root = 1 [(gogoproto.nullable) = false];
+        optional string root = 1;
       }
 
       // A mounted file-system set up by the Agent administrator. This
@@ -1005,10 +1038,10 @@ message Resource {
       // partial amount of this disk.
       message Mount {
         // Path to mount point (e.g., /mnt/raid/disk0).
-        required string root = 1 [(gogoproto.nullable) = false];
+        optional string root = 1;
       }
 
-      required Type type = 1;
+      required Type type = 1 [(gogoproto.nullable) = false];
       optional Path path = 2;
       optional Mount mount = 3;
     }
@@ -1037,6 +1070,7 @@ message Resource {
   // persistent volumes can be shared currently.
   optional SharedInfo shared = 10;
 }
+
 
 /**
  * When the network bandwidth caps are enabled and the container
@@ -1071,8 +1105,8 @@ message TrafficControlStatistics {
   optional uint64 overlimits = 5;
   optional uint64 packets = 6;
   optional uint64 qlen = 7;
-  optional uint64 ratebps = 8;
-  optional uint64 ratepps = 9;
+  optional uint64 ratebps = 8 [(gogoproto.customname) = "RateBPS"];
+  optional uint64 ratepps = 9 [(gogoproto.customname) = "RatePPS"];
   optional uint64 requeues = 10;
 }
 
@@ -1163,10 +1197,18 @@ message UdpStatistics {
 
 
 message SNMPStatistics {
-  optional IpStatistics ip_stats = 1;
-  optional IcmpStatistics icmp_stats = 2;
-  optional TcpStatistics tcp_stats = 3;
-  optional UdpStatistics udp_stats = 4;
+  optional IpStatistics ip_stats = 1 [(gogoproto.customname) = "IPStats"];
+  optional IcmpStatistics icmp_stats = 2 [(gogoproto.customname) = "ICMPStats"];
+  optional TcpStatistics tcp_stats = 3 [(gogoproto.customname) = "TCPStats"];
+  optional UdpStatistics udp_stats = 4 [(gogoproto.customname) = "UDPStats"];
+}
+
+
+message DiskStatistics {
+  optional Resource.DiskInfo.Source source = 1;
+  optional Resource.DiskInfo.Persistence persistence = 2;
+  optional uint64 limit_bytes = 3;
+  optional uint64 used_bytes = 4;
 }
 
 
@@ -1181,16 +1223,16 @@ message ResourceStatistics {
 
   // CPU Usage Information:
   // Total CPU time spent in user mode, and kernel mode.
-  optional double cpus_user_time_secs = 2;
-  optional double cpus_system_time_secs = 3;
+  optional double cpus_user_time_secs = 2 [(gogoproto.customname) = "CPUsUserTimeSecs"];
+  optional double cpus_system_time_secs = 3 [(gogoproto.customname) = "CPUsSystemTimeSecs"];
 
   // Number of CPUs allocated.
-  optional double cpus_limit = 4;
+  optional double cpus_limit = 4 [(gogoproto.customname) = "CPUsLimit"];
 
   // cpu.stat on process throttling (for contention issues).
-  optional uint32 cpus_nr_periods = 7;
-  optional uint32 cpus_nr_throttled = 8;
-  optional double cpus_throttled_time_secs = 9;
+  optional uint32 cpus_nr_periods = 7 [(gogoproto.customname) = "CPUsNrPeriods"];
+  optional uint32 cpus_nr_throttled = 8 [(gogoproto.customname) = "CPUsNrThrottled"];
+  optional double cpus_throttled_time_secs = 9 [(gogoproto.customname) = "CPUsThrottledTimeSecs"];
 
   // Memory Usage Information:
 
@@ -1224,7 +1266,7 @@ message ResourceStatistics {
   // Since 0.23.0, mem_rss_bytes is changed to represent only
   // anonymous memory usage. Note that neither its requiredness, type,
   // name nor numeric tag has been changed.
-  optional uint64 mem_rss_bytes = 5;
+  optional uint64 mem_rss_bytes = 5 [(gogoproto.customname) = "MemRSSBytes"];
 
   optional uint64 mem_mapped_file_bytes = 12;
   // This is only set if swap is enabled.
@@ -1233,7 +1275,7 @@ message ResourceStatistics {
 
   // Number of occurrences of different levels of memory pressure
   // events reported by memory cgroup. Pressure listening (re)starts
-  // with these values set to 0 when slave (re)starts. See
+  // with these values set to 0 when agent (re)starts. See
   // https://www.kernel.org/doc/Documentation/cgroups/memory.txt for
   // more details.
   optional uint64 mem_low_pressure_counter = 32;
@@ -1243,6 +1285,9 @@ message ResourceStatistics {
   // Disk Usage Information for executor working directory.
   optional uint64 disk_limit_bytes = 26;
   optional uint64 disk_used_bytes = 27;
+
+  // Per disk (resource) statistics.
+  repeated DiskStatistics disk_statistics = 43 [(gogoproto.nullable) = false];
 
   // Perf statistics.
   optional PerfStatistics perf = 13;
@@ -1259,13 +1304,13 @@ message ResourceStatistics {
 
   // The kernel keeps track of RTT (round-trip time) for its TCP
   // sockets. RTT is a way to tell the latency of a container.
-  optional double net_tcp_rtt_microsecs_p50 = 22;
-  optional double net_tcp_rtt_microsecs_p90 = 23;
-  optional double net_tcp_rtt_microsecs_p95 = 24;
-  optional double net_tcp_rtt_microsecs_p99 = 25;
+  optional double net_tcp_rtt_microsecs_p50 = 22 [(gogoproto.customname) = "NetTCPRttMicrosecsP50"];
+  optional double net_tcp_rtt_microsecs_p90 = 23 [(gogoproto.customname) = "NetTCPRttMicrosecsP90"];
+  optional double net_tcp_rtt_microsecs_p95 = 24 [(gogoproto.customname) = "NetTCPRttMicrosecsP95"];
+  optional double net_tcp_rtt_microsecs_p99 = 25 [(gogoproto.customname) = "NetTCPRttMicrosecsP99"];
 
-  optional double net_tcp_active_connections = 28;
-  optional double net_tcp_time_wait_connections = 29;
+  optional double net_tcp_active_connections = 28 [(gogoproto.customname) = "NetTCPActiveConnections"];
+  optional double net_tcp_time_wait_connections = 29 [(gogoproto.customname) = "NetTCPTimeWaitConnections"];
 
   // Network traffic flowing into or out of a container can be delayed
   // or dropped due to congestion or policy inside and outside the
@@ -1273,7 +1318,7 @@ message ResourceStatistics {
   repeated TrafficControlStatistics net_traffic_control_statistics = 35 [(gogoproto.nullable) = false];
 
   // Network SNMP statistics for each container.
-  optional SNMPStatistics net_snmp_statistics = 42;
+  optional SNMPStatistics net_snmp_statistics = 42 [(gogoproto.customname) = "NetSNMPStatistics"];
 }
 
 
@@ -1282,7 +1327,7 @@ message ResourceStatistics {
  */
 message ResourceUsage {
   message Executor {
-    required ExecutorInfo executor_info = 1 [(gogoproto.nullable) = false, (gogoproto.customname) = "ExecutorInfo"];
+    required ExecutorInfo executor_info = 1 [(gogoproto.nullable) = false];
 
     // This includes resources used by the executor itself
     // as well as its active tasks.
@@ -1308,7 +1353,7 @@ message ResourceUsage {
 
   repeated Executor executors = 1 [(gogoproto.nullable) = false];
 
-  // Slave's total resources including checkpointed dynamic
+  // Agent's total resources including checkpointed dynamic
   // reservations and persistent volumes.
   repeated Resource total = 2 [(gogoproto.nullable) = false];
 }
@@ -1343,13 +1388,13 @@ message PerfStatistics {
   optional uint64 ref_cycles = 12;
 
   // Software event.
-  optional double cpu_clock = 13;
+  optional double cpu_clock = 13 [(gogoproto.customname) = "CPUClock"];
   optional double task_clock = 14;
   optional uint64 page_faults = 15;
   optional uint64 minor_faults = 16;
   optional uint64 major_faults = 17;
   optional uint64 context_switches = 18;
-  optional uint64 cpu_migrations = 19;
+  optional uint64 cpu_migrations = 19 [(gogoproto.customname) = "CPUMigrations"];
   optional uint64 alignment_faults = 20;
   optional uint64 emulation_faults = 21;
 
@@ -1364,20 +1409,20 @@ message PerfStatistics {
   optional uint64 l1_icache_load_misses = 29;
   optional uint64 l1_icache_prefetches = 30;
   optional uint64 l1_icache_prefetch_misses = 31;
-  optional uint64 llc_loads = 32;
-  optional uint64 llc_load_misses = 33;
-  optional uint64 llc_stores = 34;
-  optional uint64 llc_store_misses = 35;
-  optional uint64 llc_prefetches = 36;
-  optional uint64 llc_prefetch_misses = 37;
-  optional uint64 dtlb_loads = 38;
-  optional uint64 dtlb_load_misses = 39;
-  optional uint64 dtlb_stores = 40;
-  optional uint64 dtlb_store_misses = 41;
-  optional uint64 dtlb_prefetches = 42;
-  optional uint64 dtlb_prefetch_misses = 43;
-  optional uint64 itlb_loads = 44;
-  optional uint64 itlb_load_misses = 45;
+  optional uint64 llc_loads = 32 [(gogoproto.customname) = "LLCLoads"];
+  optional uint64 llc_load_misses = 33 [(gogoproto.customname) = "LLCLoadMisses"];
+  optional uint64 llc_stores = 34 [(gogoproto.customname) = "LLCStores"];
+  optional uint64 llc_store_misses = 35 [(gogoproto.customname) = "LLCStoreMisses"];
+  optional uint64 llc_prefetches = 36 [(gogoproto.customname) = "LLCPrefetches"];
+  optional uint64 llc_prefetch_misses = 37 [(gogoproto.customname) = "LLCPrefetchMisses"];
+  optional uint64 dtlb_loads = 38 [(gogoproto.customname) = "DTLBLoads"];
+  optional uint64 dtlb_load_misses = 39 [(gogoproto.customname) = "DTLBLoadMisses"];
+  optional uint64 dtlb_stores = 40 [(gogoproto.customname) = "DTLBStores"];
+  optional uint64 dtlb_store_misses = 41 [(gogoproto.customname) = "DTLBStoreMisses"];
+  optional uint64 dtlb_prefetches = 42 [(gogoproto.customname) = "DTLBPrefetches"];
+  optional uint64 dtlb_prefetch_misses = 43 [(gogoproto.customname) = "DTLBPrefetchMisses"];
+  optional uint64 itlb_loads = 44 [(gogoproto.customname) = "ITLBLoads"];
+  optional uint64 itlb_load_misses = 45 [(gogoproto.customname) = "ITLBLoadMisses"];
   optional uint64 branch_loads = 46;
   optional uint64 branch_load_misses = 47;
   optional uint64 node_loads = 48;
@@ -1391,28 +1436,28 @@ message PerfStatistics {
 
 /**
  * Describes a request for resources that can be used by a framework
- * to proactively influence the allocator.  If 'slave_id' is provided
+ * to proactively influence the allocator.  If 'agent_id' is provided
  * then this request is assumed to only apply to resources on that
- * slave.
+ * agent.
  */
 message Request {
-  optional SlaveID slave_id = 1 [(gogoproto.customname) = "SlaveID"];
+  optional AgentID agent_id = 1 [(gogoproto.customname) = "AgentID"];
   repeated Resource resources = 2 [(gogoproto.nullable) = false];
 }
 
 
 /**
- * Describes some resources available on a slave. An offer only
- * contains resources from a single slave.
+ * Describes some resources available on an agent. An offer only
+ * contains resources from a single agent.
  */
 message Offer {
   required OfferID id = 1 [(gogoproto.nullable) = false, (gogoproto.customname) = "ID"];
   required FrameworkID framework_id = 2 [(gogoproto.nullable) = false, (gogoproto.customname) = "FrameworkID"];
-  required SlaveID slave_id = 3 [(gogoproto.nullable) = false, (gogoproto.customname) = "SlaveID"];
+  required AgentID agent_id = 3 [(gogoproto.nullable) = false, (gogoproto.customname) = "AgentID"];
   required string hostname = 4 [(gogoproto.nullable) = false];
 
-  // URL for reaching the slave running on the host.
-  optional URL url = 8;
+  // URL for reaching the agent running on the host.
+  optional URL url = 8 [(gogoproto.customname) = "URL"];
 
   repeated Resource resources = 5 [(gogoproto.nullable) = false];
   repeated Attribute attributes = 7 [(gogoproto.nullable) = false];
@@ -1434,9 +1479,7 @@ message Offer {
   // roles managed by the scheduler. (Therefore, each
   // `Offer.resources[i].allocation_info` will match the
   // top level `Offer.allocation_info`).
-  //
-  // NOTE: Implementation of this is in-progress, DO NOT USE!
-  optional Resource.AllocationInfo allocation_info = 10 [(gogoproto.customname) = "AllocationInfo"];
+  optional Resource.AllocationInfo allocation_info = 10;
 
   // Defines an operation that can be performed against offers.
   message Operation {
@@ -1448,6 +1491,7 @@ message Offer {
       UNRESERVE = 3;
       CREATE = 4;
       DESTROY = 5;
+      option (gogoproto.goproto_enum_prefix) = true;
     }
 
     // TODO(vinod): Deprecate this in favor of `LaunchGroup` below.
@@ -1465,7 +1509,7 @@ message Offer {
     // task by explicitly setting `Volume.source` in its resources.
     message LaunchGroup {
       required ExecutorInfo executor = 1 [(gogoproto.nullable) = false];
-      required TaskGroupInfo task_group = 2 [(gogoproto.nullable) = false, (gogoproto.customname) = "TaskGroup"];
+      required TaskGroupInfo task_group = 2 [(gogoproto.nullable) = false];
     }
 
     message Reserve {
@@ -1484,7 +1528,7 @@ message Offer {
       repeated Resource volumes = 1 [(gogoproto.nullable) = false];
     }
 
-    optional Type type = 1;
+    optional Type type = 1 [(gogoproto.nullable) = false];
     optional Launch launch = 2;
     optional LaunchGroup launch_group = 7;
     optional Reserve reserve = 3;
@@ -1503,23 +1547,23 @@ message InverseOffer {
   // re-use of some of the OfferID-only messages.
   required OfferID id = 1 [(gogoproto.nullable) = false, (gogoproto.customname) = "OfferID"];
 
-  // URL for reaching the slave running on the host.  This enables some
+  // URL for reaching the agent running on the host.  This enables some
   // optimizations as described in MESOS-3012, such as allowing the
-  // scheduler driver to bypass the master and talk directly with a slave.
-  optional URL url = 2;
+  // scheduler driver to bypass the master and talk directly with an agent.
+  optional URL url = 2 [(gogoproto.customname) = "URL"];
 
   // The framework that should release its resources.
-  // If no specifics are provided (i.e. which slave), all the framework's
+  // If no specifics are provided (i.e. which agent), all the framework's
   // resources are requested back.
   required FrameworkID framework_id = 3 [(gogoproto.nullable) = false, (gogoproto.customname) = "FrameworkID"];
 
-  // Specified if the resources need to be released from a particular slave.
-  // All the framework's resources on this slave are requested back,
+  // Specified if the resources need to be released from a particular agent.
+  // All the framework's resources on this agent are requested back,
   // unless further qualified by the `resources` field.
-  optional SlaveID slave_id = 4 [(gogoproto.customname) = "SlaveID"];
+  optional AgentID agent_id = 4 [(gogoproto.customname) = "AgentID"];
 
   // This InverseOffer represents a planned unavailability event in the
-  // specified interval.  Any tasks running on the given framework or slave
+  // specified interval.  Any tasks running on the given framework or agent
   // may be killed when the interval arrives.  Therefore, frameworks should
   // aim to gracefully terminate tasks prior to the arrival of the interval.
   //
@@ -1535,7 +1579,7 @@ message InverseOffer {
   required Unavailability unavailability = 5 [(gogoproto.nullable) = false];
 
   // A list of resources being requested back from the framework,
-  // on the slave identified by `slave_id`.  If no resources are specified
+  // on the agent identified by `agent_id`.  If no resources are specified
   // then all resources are being requested back.  For the purpose of
   // maintenance, this field is always empty (maintenance always requests
   // all resources back).
@@ -1556,7 +1600,7 @@ message InverseOffer {
 message TaskInfo {
   required string name = 1 [(gogoproto.nullable) = false];
   required TaskID task_id = 2 [(gogoproto.nullable) = false, (gogoproto.customname) = "TaskID"];
-  required SlaveID slave_id = 3 [(gogoproto.nullable) = false, (gogoproto.customname) = "SlaveID"];
+  required AgentID agent_id = 3 [(gogoproto.nullable) = false, (gogoproto.customname) = "AgentID"];
   repeated Resource resources = 4 [(gogoproto.nullable) = false];
   optional ExecutorInfo executor = 5;
   optional CommandInfo command = 7;
@@ -1589,9 +1633,9 @@ message TaskInfo {
   optional bytes data = 6;
 
   // Labels are free-form key value pairs which are exposed through
-  // master and slave endpoints. Labels will not be interpreted or
+  // master and agent endpoints. Labels will not be interpreted or
   // acted upon by Mesos itself. As opposed to the data field, labels
-  // will be kept in memory on master and slave processes. Therefore,
+  // will be kept in memory on master and agent processes. Therefore,
   // labels should be used to tag tasks with light-weight meta-data.
   // Labels should not contain duplicate key-value pairs.
   optional Labels labels = 10;
@@ -1621,7 +1665,7 @@ message TaskGroupInfo {
 
 // TODO(bmahler): Add executor_uuid here, and send it to the master. This will
 // allow us to expose executor work directories for tasks in the webui when
-// looking from the master level. Currently only the slave knows which run the
+// looking from the master level. Currently only the agent knows which run the
 // task belongs to.
 /**
  * Describes a task, similar to `TaskInfo`.
@@ -1641,7 +1685,7 @@ message Task {
   required TaskID task_id = 2 [(gogoproto.nullable) = false, (gogoproto.customname) = "TaskID"];
   required FrameworkID framework_id = 3 [(gogoproto.nullable) = false, (gogoproto.customname) = "FrameworkID"];
   optional ExecutorID executor_id = 4 [(gogoproto.customname) = "ExecutorID"];
-  required SlaveID slave_id = 5 [(gogoproto.nullable) = false, (gogoproto.customname) = "SlaveID"];
+  required AgentID agent_id = 5 [(gogoproto.nullable) = false, (gogoproto.customname) = "AgentID"];
   required TaskState state = 6; // Latest state of the task.
   repeated Resource resources = 7 [(gogoproto.nullable) = false];
   repeated TaskStatus statuses = 8 [(gogoproto.nullable) = false];
@@ -1742,27 +1786,44 @@ enum TaskState {
 */
 message CheckStatusInfo {
   message Command {
-    // Exit code of a command check.
-    optional int32 exit_code = 1 [(gogoproto.customname) = "ExitCode"];
+    // Exit code of a command check. It is the result of calling
+    // `WEXITSTATUS()` on `waitpid()` termination information on
+    // Posix and calling `GetExitCodeProcess()` on Windows.
+    optional int32 exit_code = 1;
   }
+
   message Http {
     // HTTP status code of an HTTP check.
-    optional uint32 status_code = 1 [(gogoproto.customname) = "StatusCode"];
+    optional uint32 status_code = 1;
   }
+
+  message Tcp {
+    // Whether a TCP connection succeeded.
+    optional bool succeeded = 1;
+  }
+
   // TODO(alexr): Consider adding a `data` field, which can contain, e.g.,
   // truncated stdout/stderr output for command checks or HTTP response body
   // for HTTP checks. Alternatively, it can be an even shorter `message` field
   // containing the last line of stdout or Reason-Phrase of the status line of
   // the HTTP response.
+
   // The type of the check this status corresponds to.
   optional CheckInfo.Type type = 1;
+
   // Status of a command check.
   optional Command command = 2;
+
   // Status of an HTTP check.
-  optional Http http = 3;
+  optional Http http = 3 [(gogoproto.customname) = "HTTP"];
+
+  // Status of a TCP check.
+  optional Tcp tcp = 4 [(gogoproto.customname) = "TCP"];
+
   // TODO(alexr): Consider introducing a "last changed at" timestamp, since
   // task status update's timestamp may not correspond to the last check's
   // state, e.g., for reconciliation.
+
   // TODO(alexr): Consider introducing a `reason` enum here to explicitly
   // distinguish between completed, delayed, and timed out checks.
 }
@@ -1775,13 +1836,13 @@ message TaskStatus {
   // Describes the source of the task status update.
   enum Source {
     SOURCE_MASTER = 0;
-    SOURCE_SLAVE = 1;
+    SOURCE_AGENT = 1;
     SOURCE_EXECUTOR = 2;
   }
 
   // Detailed reason for the task status update.
   //
-  // TODO(bmahler): Differentiate between slave removal reasons
+  // TODO(bmahler): Differentiate between agent removal reasons
   // (e.g. unhealthy vs. unregistered for maintenance).
   enum Reason {
     // TODO(jieyu): The default value when a caller doesn't check for
@@ -1798,7 +1859,7 @@ message TaskStatus {
     REASON_EXECUTOR_REGISTRATION_TIMEOUT = 23;
     REASON_EXECUTOR_REREGISTRATION_TIMEOUT = 24;
     REASON_EXECUTOR_TERMINATED = 1;
-    REASON_EXECUTOR_UNREGISTERED = 2;
+    REASON_EXECUTOR_UNREGISTERED = 2; // No longer used.
     REASON_FRAMEWORK_REMOVED = 3;
     REASON_GC_ERROR = 4;
     REASON_INVALID_FRAMEWORKID = 5;
@@ -1807,10 +1868,11 @@ message TaskStatus {
     REASON_MASTER_DISCONNECTED = 7;
     REASON_RECONCILIATION = 9;
     REASON_RESOURCES_UNKNOWN = 18;
-    REASON_SLAVE_DISCONNECTED = 10;
-    REASON_SLAVE_REMOVED = 11;
-    REASON_SLAVE_RESTARTED = 12;
-    REASON_SLAVE_UNKNOWN = 13;
+    REASON_AGENT_DISCONNECTED = 10;
+    REASON_AGENT_REMOVED = 11;
+    REASON_AGENT_RESTARTED = 12;
+    REASON_AGENT_UNKNOWN = 13;
+    REASON_TASK_KILLED_DURING_LAUNCH = 30;
     REASON_TASK_CHECK_STATUS_UPDATED = 28;
     REASON_TASK_GROUP_INVALID = 25;
     REASON_TASK_GROUP_UNAUTHORIZED = 26;
@@ -1825,8 +1887,8 @@ message TaskStatus {
   optional Source source = 9;
   optional Reason reason = 10;
   optional bytes data = 3;
-  optional SlaveID slave_id = 5 [(gogoproto.customname) = "SlaveID"];
-  optional ExecutorID executor_id = 7 [(gogoproto.customname) = "ExecutorID"]; // TODO(benh): Use in master/slave.
+  optional AgentID agent_id = 5 [(gogoproto.customname) = "AgentID"];
+  optional ExecutorID executor_id = 7 [(gogoproto.customname) = "ExecutorID"]; // TODO(benh): Use in master/agent.
   optional double timestamp = 6;
 
   // Statuses that are delivered reliably to the scheduler will
@@ -1855,14 +1917,14 @@ message TaskStatus {
   // the value or presence of any field in `CheckStatusInfo` changes.
   //
   // NOTE: Check support in built-in executors is experimental.
-  optional CheckStatusInfo check_status = 15 [(gogoproto.customname) = "CheckStatus"];
+  optional CheckStatusInfo check_status = 15;
 
   // Labels are free-form key value pairs which are exposed through
-  // master and slave endpoints. Labels will not be interpreted or
+  // master and agent endpoints. Labels will not be interpreted or
   // acted upon by Mesos itself. As opposed to the data field, labels
-  // will be kept in memory on master and slave processes. Therefore,
+  // will be kept in memory on master and agent processes. Therefore,
   // labels should be used to tag TaskStatus message with light-weight
-  // meta-data. Labels should not contain duplicate key-value pairs.
+  // meta-data.  Labels should not contain duplicate key-value pairs.
   optional Labels labels = 12;
 
   // Container related information that is resolved dynamically such as
@@ -1895,15 +1957,30 @@ message Filters {
 /**
 * Describes a collection of environment variables. This is used with
 * CommandInfo in order to set environment variables before running a
-* command.
+* command. The contents of each variable may be specified as a string
+* or a Secret; only one of `value` and `secret` must be set.
 */
 message Environment {
   message Variable {
     required string name = 1 [(gogoproto.nullable) = false];
-    // NOTE: The `value` field was made optional in Mesos 1.2 but it
-    // is currently enforced to be set. This constraint will be
-    // removed in a future version.
+
+    enum Type {
+      UNKNOWN = 0;
+      VALUE = 1;
+      SECRET = 2;
+      option (gogoproto.goproto_enum_prefix) = true;
+    }
+
+    // In Mesos 1.2, the `Environment.variables.value` message was made
+    // optional. The default type for `Environment.variables.type` is now VALUE,
+    // which requires `value` to be set, maintaining backward compatibility.
+    //
+    // TODO(greggomann): The default can be removed in Mesos 2.1 (MESOS-7134).
+    optional Type type = 3 [default = VALUE];
+
+    // Only one of `value` and `secret` must be set.
     optional string value = 2;
+    optional Secret secret = 4;
   }
 
   repeated Variable variables = 1 [(gogoproto.nullable) = false];
@@ -1949,6 +2026,54 @@ message Credential {
  */
 message Credentials {
   repeated Credential credentials = 1 [(gogoproto.nullable) = false];
+}
+
+
+/**
+ * Secret used to pass privileged information. It is designed to provide
+ * pass-by-value or pass-by-reference semantics, where the REFERENCE type can be
+ * used by custom modules which interact with a secure back-end.
+ */
+message Secret
+{
+  enum Type {
+    UNKNOWN = 0;
+    REFERENCE = 1;
+    VALUE = 2;
+    option (gogoproto.goproto_enum_prefix) = true;
+  }
+
+  // Can be used by modules to refer to a secret stored in a secure back-end.
+  // The `key` field is provided to permit reference to a single value within a
+  // secret containing arbitrary key-value pairs.
+  //
+  // For example, given a back-end secret store with a secret named
+  // "my-secret" containing the following key-value pairs:
+  //
+  //   {
+  //     "username": "my-user",
+  //     "password": "my-password
+  //   }
+  //
+  // the username could be referred to in a `Secret` by specifying
+  // "my-secret" for the `name` and "username" for the `key`.
+  message Reference
+  {
+    required string name = 1 [(gogoproto.nullable) = false];
+    optional string key = 2;
+  }
+
+  // Used to pass the value of a secret.
+  message Value
+  {
+    required bytes data = 1;
+  }
+
+  optional Type type = 1 [(gogoproto.nullable) = false];
+
+  // Only one of `reference` and `value` must be set.
+  optional Reference reference = 2;
+  optional Value value = 3;
 }
 
 
@@ -2033,7 +2158,18 @@ message Image {
     // Credential to authenticate with docker registry.
     // NOTE: This is not encrypted, therefore framework and operators
     // should enable SSL when passing this information.
-    optional Credential credential = 2;
+    //
+    // This is field is never used in Mesos before and is deprecated
+    // since Mesos 1.3. Please use the `Secret::Value` field `config`
+    // below (see MESOS-7088 for details).
+    optional Credential credential = 2 [deprecated = true]; // Since 1.3.
+
+    // The UTF-8 character encoded byte data, which is expected as
+    // a docker config file in JSON format. This field is used for
+    // supporting docker private registry credential per container.
+    // Users can specify different docker config files for pulling
+    // their private images from different registries.
+    optional Secret config = 3;
   }
 
   required Type type = 1;
@@ -2092,6 +2228,8 @@ message Volume {
       // TODO(gyliu513): Add HOST_PATH and IMAGE as volume source type.
       DOCKER_VOLUME = 1;
       SANDBOX_PATH = 2;
+      SECRET = 3;
+
       option (gogoproto.goproto_enum_prefix) = true;
     }
 
@@ -2119,15 +2257,15 @@ message Volume {
         option (gogoproto.goproto_enum_prefix) = true;
       }
 
-      optional Type type = 1;
+      optional Type type = 1 [(gogoproto.nullable) = false];
 
       // A path relative to the corresponding container's sandbox.
       // Note that upwards traversal (i.e. ../../abc) is not allowed.
-      required string path = 2;
+      required string path = 2 [(gogoproto.nullable) = false];
     }
 
     // Enum fields should be optional, see: MESOS-4997.
-    optional Type type = 1;
+    optional Type type = 1 [(gogoproto.nullable) = false];
 
     // The following specifies the source of this volume. At most one of
     // the following should be set.
@@ -2136,6 +2274,10 @@ message Volume {
     optional DockerVolume docker_volume = 2;
 
     optional SandboxPath sandbox_path = 3;
+
+    // The volume/secret isolator uses the secret-fetcher module (third-party or
+    // internal) downloads the secret and makes it available at container_path.
+    optional Secret secret = 4;
   }
 
   optional Source source = 5;
@@ -2224,7 +2366,7 @@ message NetworkInfo {
     optional string protocol = 3;
   }
 
-  repeated PortMapping port_mappings = 7;
+  repeated PortMapping port_mappings = 7 [(gogoproto.nullable) = false];
 };
 
 
@@ -2291,7 +2433,7 @@ message CapabilityInfo {
  */
 message LinuxInfo {
   // Represents the capability whitelist.
-  optional CapabilityInfo capability_info = 1 [(gogoproto.nullable) = false, (gogoproto.customname) = "CapabilityInfo"];
+  optional CapabilityInfo capability_info = 1;
 }
 
 
@@ -2324,15 +2466,18 @@ message RLimitInfo {
       RLMT_STACK = 16;
       option (gogoproto.goproto_enum_prefix) = true;
     }
-    optional Type type = 1;
+    optional Type type = 1 [(gogoproto.nullable) = false];
+
     // Either both are set or both are not set.
     // If both are not set, it represents unlimited.
     // If both are set, we require `soft` <= `hard`.
     optional uint64 hard = 2;
     optional uint64 soft = 3;
   }
-  repeated RLimit rlimits = 1;
+
+  repeated RLimit rlimits = 1 [(gogoproto.nullable) = false];
 }
+
 
 /**
  * Describes the information about (pseudo) TTY that can
@@ -2340,10 +2485,11 @@ message RLimitInfo {
  */
 message TTYInfo {
   message WindowSize {
-    required uint32 rows = 1;
-    required uint32 columns = 2;
+    required uint32 rows = 1 [(gogoproto.nullable) = false];
+    required uint32 columns = 2 [(gogoproto.nullable) = false];
   }
-  optional WindowSize window_size = 1 [(gogoproto.customname) = "WindowSize"];
+
+  optional WindowSize window_size = 1;
 }
 
 
@@ -2376,6 +2522,7 @@ message ContainerInfo {
       BRIDGE = 2;
       NONE = 3;
       USER = 4;
+      option (gogoproto.goproto_enum_prefix) = true;
     }
 
     optional Network network = 2 [default = HOST];
@@ -2399,7 +2546,7 @@ message ContainerInfo {
 
     // With this flag set to true, the docker containerizer will
     // pull the docker image from the registry even if the image
-    // is already downloaded on the slave.
+    // is already downloaded on the agent.
     optional bool force_pull_image = 6;
 
     // The name of volume driver plugin.
@@ -2424,10 +2571,11 @@ message ContainerInfo {
   repeated NetworkInfo network_infos = 7 [(gogoproto.nullable) = false];
 
   // Linux specific information for the container.
-  optional LinuxInfo linux_info = 8 [(gogoproto.customname) = "LinuxInfo"];
+  optional LinuxInfo linux_info = 8;
 
   // (POSIX only) rlimits of the container.
-  optional RLimitInfo rlimit_info = 9 [(gogoproto.customname) = "RLimitInfo"];
+  optional RLimitInfo rlimit_info = 9;
+
   // If specified a tty will be attached to the container entrypoint.
   optional TTYInfo tty_info = 10 [(gogoproto.customname) = "TTYInfo"];
 }
@@ -2632,4 +2780,31 @@ message FileInfo {
 
   // Group ID of owner.
   optional string gid = 7 [(gogoproto.customname) = "GID"];
+}
+
+
+/**
+ * Describes information abount a device.
+ */
+message Device {
+  required string path = 1 [(gogoproto.nullable) = false];
+}
+
+
+/**
+ * Describes a device whitelist entry that expose from host to container.
+ */
+message DeviceAccess {
+  message Access {
+    optional bool read = 1;
+    optional bool write = 2;
+    optional bool mknod = 3;
+  }
+  required Device device = 1 [(gogoproto.nullable) = false];
+  required Access access = 2 [(gogoproto.nullable) = false];
+}
+
+
+message DeviceWhitelist {
+   repeated DeviceAccess allowed_devices = 1 [(gogoproto.nullable) = false];
 }

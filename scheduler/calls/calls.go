@@ -12,7 +12,7 @@ import (
 // Filters sets a scheduler.Call's internal Filters, required for Accept and Decline calls.
 func Filters(fo ...mesos.FilterOpt) scheduler.CallOpt {
 	return func(c *scheduler.Call) {
-		switch *c.Type {
+		switch c.Type {
 		case scheduler.Call_ACCEPT:
 			c.Accept.Filters = mesos.OptionalFilters(fo...)
 		case scheduler.Call_ACCEPT_INVERSE_OFFERS:
@@ -47,7 +47,7 @@ func Framework(id string) scheduler.CallOpt {
 // The call's FrameworkID is automatically filled in from the info specification.
 func Subscribe(info *mesos.FrameworkInfo) *scheduler.Call {
 	return &scheduler.Call{
-		Type:        scheduler.Call_SUBSCRIBE.Enum(),
+		Type:        scheduler.Call_SUBSCRIBE,
 		FrameworkID: info.GetID(),
 		Subscribe:   &scheduler.Call_Subscribe{FrameworkInfo: info},
 	}
@@ -87,7 +87,7 @@ func Accept(ops ...AcceptOpt) *scheduler.Call {
 		offerIDs = append(offerIDs, id)
 	}
 	return &scheduler.Call{
-		Type: scheduler.Call_ACCEPT.Enum(),
+		Type: scheduler.Call_ACCEPT,
 		Accept: &scheduler.Call_Accept{
 			OfferIDs:   offerIDs,
 			Operations: ab.operations,
@@ -99,7 +99,7 @@ func Accept(ops ...AcceptOpt) *scheduler.Call {
 // Callers are expected to fill in the FrameworkID and Filters.
 func AcceptInverseOffers(offerIDs ...mesos.OfferID) *scheduler.Call {
 	return &scheduler.Call{
-		Type: scheduler.Call_ACCEPT_INVERSE_OFFERS.Enum(),
+		Type: scheduler.Call_ACCEPT_INVERSE_OFFERS,
 		AcceptInverseOffers: &scheduler.Call_AcceptInverseOffers{
 			InverseOfferIDs: offerIDs,
 		},
@@ -110,7 +110,7 @@ func AcceptInverseOffers(offerIDs ...mesos.OfferID) *scheduler.Call {
 // Callers are expected to fill in the FrameworkID and Filters.
 func DeclineInverseOffers(offerIDs ...mesos.OfferID) *scheduler.Call {
 	return &scheduler.Call{
-		Type: scheduler.Call_DECLINE_INVERSE_OFFERS.Enum(),
+		Type: scheduler.Call_DECLINE_INVERSE_OFFERS,
 		DeclineInverseOffers: &scheduler.Call_DeclineInverseOffers{
 			InverseOfferIDs: offerIDs,
 		},
@@ -120,7 +120,7 @@ func DeclineInverseOffers(offerIDs ...mesos.OfferID) *scheduler.Call {
 // OpLaunch returns a launch operation builder for the given tasks
 func OpLaunch(ti ...mesos.TaskInfo) mesos.Offer_Operation {
 	return mesos.Offer_Operation{
-		Type: mesos.LAUNCH.Enum(),
+		Type: mesos.Offer_Operation_LAUNCH,
 		Launch: &mesos.Offer_Operation_Launch{
 			TaskInfos: ti,
 		},
@@ -130,7 +130,7 @@ func OpLaunch(ti ...mesos.TaskInfo) mesos.Offer_Operation {
 // OpLaunchGroup returns a launch_group operation builder for the given task group.
 func OpLaunchGroup(tg mesos.TaskGroupInfo, ei mesos.ExecutorInfo) mesos.Offer_Operation {
 	return mesos.Offer_Operation{
-		Type: mesos.LAUNCH_GROUP.Enum(),
+		Type: mesos.Offer_Operation_LAUNCH_GROUP,
 		LaunchGroup: &mesos.Offer_Operation_LaunchGroup{
 			TaskGroup: tg,
 			Executor:  ei,
@@ -140,7 +140,7 @@ func OpLaunchGroup(tg mesos.TaskGroupInfo, ei mesos.ExecutorInfo) mesos.Offer_Op
 
 func OpReserve(rs ...mesos.Resource) mesos.Offer_Operation {
 	return mesos.Offer_Operation{
-		Type: mesos.RESERVE.Enum(),
+		Type: mesos.Offer_Operation_RESERVE,
 		Reserve: &mesos.Offer_Operation_Reserve{
 			Resources: rs,
 		},
@@ -149,7 +149,7 @@ func OpReserve(rs ...mesos.Resource) mesos.Offer_Operation {
 
 func OpUnreserve(rs ...mesos.Resource) mesos.Offer_Operation {
 	return mesos.Offer_Operation{
-		Type: mesos.UNRESERVE.Enum(),
+		Type: mesos.Offer_Operation_UNRESERVE,
 		Unreserve: &mesos.Offer_Operation_Unreserve{
 			Resources: rs,
 		},
@@ -158,7 +158,7 @@ func OpUnreserve(rs ...mesos.Resource) mesos.Offer_Operation {
 
 func OpCreate(rs ...mesos.Resource) mesos.Offer_Operation {
 	return mesos.Offer_Operation{
-		Type: mesos.CREATE.Enum(),
+		Type: mesos.Offer_Operation_CREATE,
 		Create: &mesos.Offer_Operation_Create{
 			Volumes: rs,
 		},
@@ -167,7 +167,7 @@ func OpCreate(rs ...mesos.Resource) mesos.Offer_Operation {
 
 func OpDestroy(rs ...mesos.Resource) mesos.Offer_Operation {
 	return mesos.Offer_Operation{
-		Type: mesos.DESTROY.Enum(),
+		Type: mesos.Offer_Operation_DESTROY,
 		Destroy: &mesos.Offer_Operation_Destroy{
 			Volumes: rs,
 		},
@@ -178,7 +178,29 @@ func OpDestroy(rs ...mesos.Resource) mesos.Offer_Operation {
 // Callers are expected to fill in the FrameworkID.
 func Revive() *scheduler.Call {
 	return &scheduler.Call{
-		Type: scheduler.Call_REVIVE.Enum(),
+		Type: scheduler.Call_REVIVE,
+	}
+}
+
+// Revive returns a revive call with the given filters.
+// Callers are expected to fill in the FrameworkID.
+func ReviveWith(roles []string) *scheduler.Call {
+	return &scheduler.Call{
+		Type:   scheduler.Call_REVIVE,
+		Revive: &scheduler.Call_Revive{Roles: roles},
+	}
+}
+
+// Suppress returns a suppress call.
+// Callers are expected to fill in the FrameworkID
+func Suppress() *scheduler.Call {
+	return &scheduler.Call{Type: scheduler.Call_SUPPRESS}
+}
+
+func SuppressWith(roles []string) *scheduler.Call {
+	return &scheduler.Call{
+		Type:     scheduler.Call_SUPPRESS,
+		Suppress: &scheduler.Call_Suppress{Roles: roles},
 	}
 }
 
@@ -186,7 +208,7 @@ func Revive() *scheduler.Call {
 // Callers are expected to fill in the FrameworkID and Filters.
 func Decline(offerIDs ...mesos.OfferID) *scheduler.Call {
 	return &scheduler.Call{
-		Type: scheduler.Call_DECLINE.Enum(),
+		Type: scheduler.Call_DECLINE,
 		Decline: &scheduler.Call_Decline{
 			OfferIDs: offerIDs,
 		},
@@ -197,10 +219,10 @@ func Decline(offerIDs ...mesos.OfferID) *scheduler.Call {
 // Callers are expected to fill in the FrameworkID.
 func Kill(taskID, slaveID string) *scheduler.Call {
 	return &scheduler.Call{
-		Type: scheduler.Call_KILL.Enum(),
+		Type: scheduler.Call_KILL,
 		Kill: &scheduler.Call_Kill{
 			TaskID:  mesos.TaskID{Value: taskID},
-			SlaveID: optionalSlaveID(slaveID),
+			AgentID: optionalAgentID(slaveID),
 		},
 	}
 }
@@ -209,10 +231,10 @@ func Kill(taskID, slaveID string) *scheduler.Call {
 // Callers are expected to fill in the FrameworkID.
 func Shutdown(executorID, slaveID string) *scheduler.Call {
 	return &scheduler.Call{
-		Type: scheduler.Call_SHUTDOWN.Enum(),
+		Type: scheduler.Call_SHUTDOWN,
 		Shutdown: &scheduler.Call_Shutdown{
 			ExecutorID: mesos.ExecutorID{Value: executorID},
-			SlaveID:    mesos.SlaveID{Value: slaveID},
+			AgentID:    mesos.AgentID{Value: slaveID},
 		},
 	}
 }
@@ -221,9 +243,9 @@ func Shutdown(executorID, slaveID string) *scheduler.Call {
 // Callers are expected to fill in the FrameworkID.
 func Acknowledge(slaveID, taskID string, uuid []byte) *scheduler.Call {
 	return &scheduler.Call{
-		Type: scheduler.Call_ACKNOWLEDGE.Enum(),
+		Type: scheduler.Call_ACKNOWLEDGE,
 		Acknowledge: &scheduler.Call_Acknowledge{
-			SlaveID: mesos.SlaveID{Value: slaveID},
+			AgentID: mesos.AgentID{Value: slaveID},
 			TaskID:  mesos.TaskID{Value: taskID},
 			UUID:    uuid,
 		},
@@ -243,7 +265,7 @@ func ReconcileTasks(tasks map[string]string) scheduler.ReconcileOpt {
 		i := 0
 		for k, v := range tasks {
 			result[i].TaskID = mesos.TaskID{Value: k}
-			result[i].SlaveID = optionalSlaveID(v)
+			result[i].AgentID = optionalAgentID(v)
 			i++
 		}
 		cr.Tasks = result
@@ -255,7 +277,7 @@ func ReconcileTasks(tasks map[string]string) scheduler.ReconcileOpt {
 // Callers are expected to fill in the FrameworkID.
 func Reconcile(opts ...scheduler.ReconcileOpt) *scheduler.Call {
 	return &scheduler.Call{
-		Type:      scheduler.Call_RECONCILE.Enum(),
+		Type:      scheduler.Call_RECONCILE,
 		Reconcile: (&scheduler.Call_Reconcile{}).With(opts...),
 	}
 }
@@ -264,9 +286,9 @@ func Reconcile(opts ...scheduler.ReconcileOpt) *scheduler.Call {
 // Callers are expected to fill in the FrameworkID.
 func Message(slaveID, executorID string, data []byte) *scheduler.Call {
 	return &scheduler.Call{
-		Type: scheduler.Call_MESSAGE.Enum(),
+		Type: scheduler.Call_MESSAGE,
 		Message: &scheduler.Call_Message{
-			SlaveID:    mesos.SlaveID{Value: slaveID},
+			AgentID:    mesos.AgentID{Value: slaveID},
 			ExecutorID: mesos.ExecutorID{Value: executorID},
 			Data:       data,
 		},
@@ -277,18 +299,18 @@ func Message(slaveID, executorID string, data []byte) *scheduler.Call {
 // Callers are expected to fill in the FrameworkID.
 func Request(requests ...mesos.Request) *scheduler.Call {
 	return &scheduler.Call{
-		Type: scheduler.Call_REQUEST.Enum(),
+		Type: scheduler.Call_REQUEST,
 		Request: &scheduler.Call_Request{
 			Requests: requests,
 		},
 	}
 }
 
-func optionalSlaveID(slaveID string) *mesos.SlaveID {
+func optionalAgentID(slaveID string) *mesos.AgentID {
 	if slaveID == "" {
 		return nil
 	}
-	return &mesos.SlaveID{Value: slaveID}
+	return &mesos.AgentID{Value: slaveID}
 }
 
 func errInvalidCall(reason string) error {
