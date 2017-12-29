@@ -19,7 +19,7 @@ package mesos.agent;
 import "github.com/mesos/mesos-go/mesos.proto";
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
-option go_package = "scheduler";
+option go_package = "agent";
 option (gogoproto.benchgen_all) = true;
 option (gogoproto.enum_stringer_all) = true;
 option (gogoproto.equal_all) = true;
@@ -169,7 +169,7 @@ message Call {
     }
 
     optional Type type = 1;
-    optional ContainerID container_id = 2;
+    optional ContainerID container_id = 2 [(gogoproto.customname) = "ContainerID"];
     optional ProcessIO process_io = 3;
   }
 

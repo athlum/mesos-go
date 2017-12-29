@@ -3,7 +3,7 @@
 // source: agent/agent.pb.go
 // DO NOT EDIT!
 
-package scheduler
+package agent
 
 import (
 	"bytes"
@@ -529,7 +529,7 @@ mainparse:
 
 handle_Type:
 
-	/* handler: uj.Type type=scheduler.Call_Type kind=int32 quoted=false*/
+	/* handler: uj.Type type=agent.Call_Type kind=int32 quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -561,7 +561,7 @@ handle_Type:
 
 handle_GetMetrics:
 
-	/* handler: uj.GetMetrics type=scheduler.Call_GetMetrics kind=struct quoted=false*/
+	/* handler: uj.GetMetrics type=agent.Call_GetMetrics kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -588,7 +588,7 @@ handle_GetMetrics:
 
 handle_SetLoggingLevel:
 
-	/* handler: uj.SetLoggingLevel type=scheduler.Call_SetLoggingLevel kind=struct quoted=false*/
+	/* handler: uj.SetLoggingLevel type=agent.Call_SetLoggingLevel kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -615,7 +615,7 @@ handle_SetLoggingLevel:
 
 handle_ListFiles:
 
-	/* handler: uj.ListFiles type=scheduler.Call_ListFiles kind=struct quoted=false*/
+	/* handler: uj.ListFiles type=agent.Call_ListFiles kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -642,7 +642,7 @@ handle_ListFiles:
 
 handle_ReadFile:
 
-	/* handler: uj.ReadFile type=scheduler.Call_ReadFile kind=struct quoted=false*/
+	/* handler: uj.ReadFile type=agent.Call_ReadFile kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -669,7 +669,7 @@ handle_ReadFile:
 
 handle_LaunchNestedContainer:
 
-	/* handler: uj.LaunchNestedContainer type=scheduler.Call_LaunchNestedContainer kind=struct quoted=false*/
+	/* handler: uj.LaunchNestedContainer type=agent.Call_LaunchNestedContainer kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -696,7 +696,7 @@ handle_LaunchNestedContainer:
 
 handle_WaitNestedContainer:
 
-	/* handler: uj.WaitNestedContainer type=scheduler.Call_WaitNestedContainer kind=struct quoted=false*/
+	/* handler: uj.WaitNestedContainer type=agent.Call_WaitNestedContainer kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -723,7 +723,7 @@ handle_WaitNestedContainer:
 
 handle_KillNestedContainer:
 
-	/* handler: uj.KillNestedContainer type=scheduler.Call_KillNestedContainer kind=struct quoted=false*/
+	/* handler: uj.KillNestedContainer type=agent.Call_KillNestedContainer kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -750,7 +750,7 @@ handle_KillNestedContainer:
 
 handle_LaunchNestedContainerSession:
 
-	/* handler: uj.LaunchNestedContainerSession type=scheduler.Call_LaunchNestedContainerSession kind=struct quoted=false*/
+	/* handler: uj.LaunchNestedContainerSession type=agent.Call_LaunchNestedContainerSession kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -777,7 +777,7 @@ handle_LaunchNestedContainerSession:
 
 handle_AttachContainerInput:
 
-	/* handler: uj.AttachContainerInput type=scheduler.Call_AttachContainerInput kind=struct quoted=false*/
+	/* handler: uj.AttachContainerInput type=agent.Call_AttachContainerInput kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -804,7 +804,7 @@ handle_AttachContainerInput:
 
 handle_AttachContainerOutput:
 
-	/* handler: uj.AttachContainerOutput type=scheduler.Call_AttachContainerOutput kind=struct quoted=false*/
+	/* handler: uj.AttachContainerOutput type=agent.Call_AttachContainerOutput kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -884,13 +884,13 @@ func (mj *Call_AttachContainerInput) MarshalJSONBuf(buf fflib.EncodingBuffer) er
 			buf.WriteByte(',')
 		}
 	}
-	if mj.ContainerId != nil {
+	if mj.ContainerID != nil {
 		if true {
 			buf.WriteString(`"container_id":`)
 
 			{
 
-				err = mj.ContainerId.MarshalJSONBuf(buf)
+				err = mj.ContainerID.MarshalJSONBuf(buf)
 				if err != nil {
 					return err
 				}
@@ -925,14 +925,14 @@ const (
 
 	ffj_t_Call_AttachContainerInput_Type
 
-	ffj_t_Call_AttachContainerInput_ContainerId
+	ffj_t_Call_AttachContainerInput_ContainerID
 
 	ffj_t_Call_AttachContainerInput_ProcessIo
 )
 
 var ffj_key_Call_AttachContainerInput_Type = []byte("type")
 
-var ffj_key_Call_AttachContainerInput_ContainerId = []byte("container_id")
+var ffj_key_Call_AttachContainerInput_ContainerID = []byte("container_id")
 
 var ffj_key_Call_AttachContainerInput_ProcessIo = []byte("process_io")
 
@@ -997,8 +997,8 @@ mainparse:
 
 				case 'c':
 
-					if bytes.Equal(ffj_key_Call_AttachContainerInput_ContainerId, kn) {
-						currentKey = ffj_t_Call_AttachContainerInput_ContainerId
+					if bytes.Equal(ffj_key_Call_AttachContainerInput_ContainerID, kn) {
+						currentKey = ffj_t_Call_AttachContainerInput_ContainerID
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
@@ -1027,8 +1027,8 @@ mainparse:
 					goto mainparse
 				}
 
-				if fflib.AsciiEqualFold(ffj_key_Call_AttachContainerInput_ContainerId, kn) {
-					currentKey = ffj_t_Call_AttachContainerInput_ContainerId
+				if fflib.AsciiEqualFold(ffj_key_Call_AttachContainerInput_ContainerID, kn) {
+					currentKey = ffj_t_Call_AttachContainerInput_ContainerID
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
@@ -1059,8 +1059,8 @@ mainparse:
 				case ffj_t_Call_AttachContainerInput_Type:
 					goto handle_Type
 
-				case ffj_t_Call_AttachContainerInput_ContainerId:
-					goto handle_ContainerId
+				case ffj_t_Call_AttachContainerInput_ContainerID:
+					goto handle_ContainerID
 
 				case ffj_t_Call_AttachContainerInput_ProcessIo:
 					goto handle_ProcessIo
@@ -1081,7 +1081,7 @@ mainparse:
 
 handle_Type:
 
-	/* handler: uj.Type type=scheduler.Call_AttachContainerInput_Type kind=int32 quoted=false*/
+	/* handler: uj.Type type=agent.Call_AttachContainerInput_Type kind=int32 quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -1111,24 +1111,24 @@ handle_Type:
 	state = fflib.FFParse_after_value
 	goto mainparse
 
-handle_ContainerId:
+handle_ContainerID:
 
-	/* handler: uj.ContainerId type=mesos.ContainerID kind=struct quoted=false*/
+	/* handler: uj.ContainerID type=mesos.ContainerID kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
 
-			uj.ContainerId = nil
+			uj.ContainerID = nil
 
 			state = fflib.FFParse_after_value
 			goto mainparse
 		}
 
-		if uj.ContainerId == nil {
-			uj.ContainerId = new(mesos.ContainerID)
+		if uj.ContainerID == nil {
+			uj.ContainerID = new(mesos.ContainerID)
 		}
 
-		err = uj.ContainerId.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+		err = uj.ContainerID.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
 			return err
 		}
@@ -1140,7 +1140,7 @@ handle_ContainerId:
 
 handle_ProcessIo:
 
-	/* handler: uj.ProcessIo type=scheduler.ProcessIO kind=struct quoted=false*/
+	/* handler: uj.ProcessIo type=agent.ProcessIO kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -3556,7 +3556,7 @@ mainparse:
 
 handle_Type:
 
-	/* handler: uj.Type type=scheduler.ProcessIO_Type kind=int32 quoted=false*/
+	/* handler: uj.Type type=agent.ProcessIO_Type kind=int32 quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -3588,7 +3588,7 @@ handle_Type:
 
 handle_Data:
 
-	/* handler: uj.Data type=scheduler.ProcessIO_Data kind=struct quoted=false*/
+	/* handler: uj.Data type=agent.ProcessIO_Data kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -3615,7 +3615,7 @@ handle_Data:
 
 handle_Control:
 
-	/* handler: uj.Control type=scheduler.ProcessIO_Control kind=struct quoted=false*/
+	/* handler: uj.Control type=agent.ProcessIO_Control kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -3889,7 +3889,7 @@ mainparse:
 
 handle_Type:
 
-	/* handler: uj.Type type=scheduler.ProcessIO_Control_Type kind=int32 quoted=false*/
+	/* handler: uj.Type type=agent.ProcessIO_Control_Type kind=int32 quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -3948,7 +3948,7 @@ handle_TtyInfo:
 
 handle_Heartbeat:
 
-	/* handler: uj.Heartbeat type=scheduler.ProcessIO_Control_Heartbeat kind=struct quoted=false*/
+	/* handler: uj.Heartbeat type=agent.ProcessIO_Control_Heartbeat kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -4393,7 +4393,7 @@ mainparse:
 
 handle_Type:
 
-	/* handler: uj.Type type=scheduler.ProcessIO_Data_Type kind=int32 quoted=false*/
+	/* handler: uj.Type type=agent.ProcessIO_Data_Type kind=int32 quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -5074,7 +5074,7 @@ mainparse:
 
 handle_Type:
 
-	/* handler: uj.Type type=scheduler.Response_Type kind=int32 quoted=false*/
+	/* handler: uj.Type type=agent.Response_Type kind=int32 quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -5106,7 +5106,7 @@ handle_Type:
 
 handle_GetHealth:
 
-	/* handler: uj.GetHealth type=scheduler.Response_GetHealth kind=struct quoted=false*/
+	/* handler: uj.GetHealth type=agent.Response_GetHealth kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -5133,7 +5133,7 @@ handle_GetHealth:
 
 handle_GetFlags:
 
-	/* handler: uj.GetFlags type=scheduler.Response_GetFlags kind=struct quoted=false*/
+	/* handler: uj.GetFlags type=agent.Response_GetFlags kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -5160,7 +5160,7 @@ handle_GetFlags:
 
 handle_GetVersion:
 
-	/* handler: uj.GetVersion type=scheduler.Response_GetVersion kind=struct quoted=false*/
+	/* handler: uj.GetVersion type=agent.Response_GetVersion kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -5187,7 +5187,7 @@ handle_GetVersion:
 
 handle_GetMetrics:
 
-	/* handler: uj.GetMetrics type=scheduler.Response_GetMetrics kind=struct quoted=false*/
+	/* handler: uj.GetMetrics type=agent.Response_GetMetrics kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -5214,7 +5214,7 @@ handle_GetMetrics:
 
 handle_GetLoggingLevel:
 
-	/* handler: uj.GetLoggingLevel type=scheduler.Response_GetLoggingLevel kind=struct quoted=false*/
+	/* handler: uj.GetLoggingLevel type=agent.Response_GetLoggingLevel kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -5241,7 +5241,7 @@ handle_GetLoggingLevel:
 
 handle_ListFiles:
 
-	/* handler: uj.ListFiles type=scheduler.Response_ListFiles kind=struct quoted=false*/
+	/* handler: uj.ListFiles type=agent.Response_ListFiles kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -5268,7 +5268,7 @@ handle_ListFiles:
 
 handle_ReadFile:
 
-	/* handler: uj.ReadFile type=scheduler.Response_ReadFile kind=struct quoted=false*/
+	/* handler: uj.ReadFile type=agent.Response_ReadFile kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -5295,7 +5295,7 @@ handle_ReadFile:
 
 handle_GetState:
 
-	/* handler: uj.GetState type=scheduler.Response_GetState kind=struct quoted=false*/
+	/* handler: uj.GetState type=agent.Response_GetState kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -5322,7 +5322,7 @@ handle_GetState:
 
 handle_GetContainers:
 
-	/* handler: uj.GetContainers type=scheduler.Response_GetContainers kind=struct quoted=false*/
+	/* handler: uj.GetContainers type=agent.Response_GetContainers kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -5349,7 +5349,7 @@ handle_GetContainers:
 
 handle_GetFrameworks:
 
-	/* handler: uj.GetFrameworks type=scheduler.Response_GetFrameworks kind=struct quoted=false*/
+	/* handler: uj.GetFrameworks type=agent.Response_GetFrameworks kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -5376,7 +5376,7 @@ handle_GetFrameworks:
 
 handle_GetExecutors:
 
-	/* handler: uj.GetExecutors type=scheduler.Response_GetExecutors kind=struct quoted=false*/
+	/* handler: uj.GetExecutors type=agent.Response_GetExecutors kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -5403,7 +5403,7 @@ handle_GetExecutors:
 
 handle_GetTasks:
 
-	/* handler: uj.GetTasks type=scheduler.Response_GetTasks kind=struct quoted=false*/
+	/* handler: uj.GetTasks type=agent.Response_GetTasks kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -5430,7 +5430,7 @@ handle_GetTasks:
 
 handle_WaitNestedContainer:
 
-	/* handler: uj.WaitNestedContainer type=scheduler.Response_WaitNestedContainer kind=struct quoted=false*/
+	/* handler: uj.WaitNestedContainer type=agent.Response_WaitNestedContainer kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -5638,7 +5638,7 @@ mainparse:
 
 handle_Containers:
 
-	/* handler: uj.Containers type=[]scheduler.Response_GetContainers_Container kind=slice quoted=false*/
+	/* handler: uj.Containers type=[]agent.Response_GetContainers_Container kind=slice quoted=false*/
 
 	{
 
@@ -5679,7 +5679,7 @@ handle_Containers:
 					wantVal = true
 				}
 
-				/* handler: tmp_uj__Containers type=scheduler.Response_GetContainers_Container kind=struct quoted=false*/
+				/* handler: tmp_uj__Containers type=agent.Response_GetContainers_Container kind=struct quoted=false*/
 
 				{
 					if tok == fflib.FFTok_null {
@@ -6396,7 +6396,7 @@ mainparse:
 
 handle_Executors:
 
-	/* handler: uj.Executors type=[]scheduler.Response_GetExecutors_Executor kind=slice quoted=false*/
+	/* handler: uj.Executors type=[]agent.Response_GetExecutors_Executor kind=slice quoted=false*/
 
 	{
 
@@ -6437,7 +6437,7 @@ handle_Executors:
 					wantVal = true
 				}
 
-				/* handler: tmp_uj__Executors type=scheduler.Response_GetExecutors_Executor kind=struct quoted=false*/
+				/* handler: tmp_uj__Executors type=agent.Response_GetExecutors_Executor kind=struct quoted=false*/
 
 				{
 					if tok == fflib.FFTok_null {
@@ -6465,7 +6465,7 @@ handle_Executors:
 
 handle_CompletedExecutors:
 
-	/* handler: uj.CompletedExecutors type=[]scheduler.Response_GetExecutors_Executor kind=slice quoted=false*/
+	/* handler: uj.CompletedExecutors type=[]agent.Response_GetExecutors_Executor kind=slice quoted=false*/
 
 	{
 
@@ -6506,7 +6506,7 @@ handle_CompletedExecutors:
 					wantVal = true
 				}
 
-				/* handler: tmp_uj__CompletedExecutors type=scheduler.Response_GetExecutors_Executor kind=struct quoted=false*/
+				/* handler: tmp_uj__CompletedExecutors type=agent.Response_GetExecutors_Executor kind=struct quoted=false*/
 
 				{
 					if tok == fflib.FFTok_null {
@@ -7198,7 +7198,7 @@ mainparse:
 
 handle_Frameworks:
 
-	/* handler: uj.Frameworks type=[]scheduler.Response_GetFrameworks_Framework kind=slice quoted=false*/
+	/* handler: uj.Frameworks type=[]agent.Response_GetFrameworks_Framework kind=slice quoted=false*/
 
 	{
 
@@ -7239,7 +7239,7 @@ handle_Frameworks:
 					wantVal = true
 				}
 
-				/* handler: tmp_uj__Frameworks type=scheduler.Response_GetFrameworks_Framework kind=struct quoted=false*/
+				/* handler: tmp_uj__Frameworks type=agent.Response_GetFrameworks_Framework kind=struct quoted=false*/
 
 				{
 					if tok == fflib.FFTok_null {
@@ -7267,7 +7267,7 @@ handle_Frameworks:
 
 handle_CompletedFrameworks:
 
-	/* handler: uj.CompletedFrameworks type=[]scheduler.Response_GetFrameworks_Framework kind=slice quoted=false*/
+	/* handler: uj.CompletedFrameworks type=[]agent.Response_GetFrameworks_Framework kind=slice quoted=false*/
 
 	{
 
@@ -7308,7 +7308,7 @@ handle_CompletedFrameworks:
 					wantVal = true
 				}
 
-				/* handler: tmp_uj__CompletedFrameworks type=scheduler.Response_GetFrameworks_Framework kind=struct quoted=false*/
+				/* handler: tmp_uj__CompletedFrameworks type=agent.Response_GetFrameworks_Framework kind=struct quoted=false*/
 
 				{
 					if tok == fflib.FFTok_null {
@@ -8412,7 +8412,7 @@ mainparse:
 
 handle_GetTasks:
 
-	/* handler: uj.GetTasks type=scheduler.Response_GetTasks kind=struct quoted=false*/
+	/* handler: uj.GetTasks type=agent.Response_GetTasks kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -8439,7 +8439,7 @@ handle_GetTasks:
 
 handle_GetExecutors:
 
-	/* handler: uj.GetExecutors type=scheduler.Response_GetExecutors kind=struct quoted=false*/
+	/* handler: uj.GetExecutors type=agent.Response_GetExecutors kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
@@ -8466,7 +8466,7 @@ handle_GetExecutors:
 
 handle_GetFrameworks:
 
-	/* handler: uj.GetFrameworks type=scheduler.Response_GetFrameworks kind=struct quoted=false*/
+	/* handler: uj.GetFrameworks type=agent.Response_GetFrameworks kind=struct quoted=false*/
 
 	{
 		if tok == fflib.FFTok_null {
