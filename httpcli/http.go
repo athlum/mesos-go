@@ -104,6 +104,16 @@ type Response struct {
 // implements mesos.Response
 func (r *Response) Decoder() encoding.Decoder { return r.decoder }
 
+type ResponseWrapper struct {
+	Resp           *http.Response
+	Err            error
+	handleResponse ResponseHandler
+}
+
+func (rw *ResponseWrapper) Decode() (mesos.Response, error) {
+	return rw.handleResponse(rw.Resp, rw.Err)
+}
+
 // ErrorMapperFunc generates an error for the given statusCode
 type ErrorMapperFunc func(statusCode int) error
 
@@ -253,6 +263,29 @@ func (c *Client) Do(m encoding.Marshaler, opt ...RequestOpt) (res mesos.Response
 		res, err = c.handleResponse(c.do(req))
 	}
 	return
+}
+
+func (c *Client) HttpDo(m encoding.Marshaler, opt ...RequestOpt) (res *http.Response, err error) {
+	var req *http.Request
+	req, err = c.buildRequest(m, opt...)
+	if err == nil {
+		res, err = c.do(req)
+	}
+	return
+}
+
+func (c *Client) WrapDo(m encoding.Marshaler, opt ...RequestOpt) (rw *ResponseWrapper) {
+	req, err := c.buildRequest(m, opt...)
+	rw = &ResponseWrapper{
+		Err:            err,
+		handleResponse: c.handleResponse,
+	}
+	if err == nil {
+		resp, err := c.do(req)
+		rw.Err = err
+		rw.Resp = resp
+	}
+	return rw
 }
 
 // ErrorMapper returns am Opt that overrides the existing error mapping behavior of the client.
