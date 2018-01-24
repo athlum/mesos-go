@@ -1228,6 +1228,10 @@ func (m *Response_GetTasks) GetCompletedTasks() []mesos.Task {
 
 // Returns termination information about the nested container.
 type Response_WaitNestedContainer struct {
+	// Wait status of the lead process in the container. Note that this
+	// is the return value of `wait(2)`, so callers must use the `wait(2)`
+	// family of macros to extract whether the process exited cleanly and
+	// what the exit code was.))
 	ExitStatus *int32 `protobuf:"varint,1,opt,name=exit_status,json=exitStatus" json:"exit_status,omitempty"`
 }
 
